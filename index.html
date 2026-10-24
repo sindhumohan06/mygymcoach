@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pull-Up">
+<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F141B" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+*{-webkit-tap-highlight-color:transparent}
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}
+body{margin:0;font:14px system-ui,sans-serif;overscroll-behavior:none}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Pull-Up Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+<style>
+/* One-screen session app: progress strip, figure stage, exercise card, thumb-zone actions. */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --ink:#16202B; --muted:#5B6776; --line:#D5DBE3;
+  --accent:#2F55D4; --accent-ink:#FFFFFF; --rest:#9A5A00; --rest-soft:#FBEBD2; --stage:#E2E7EE; --skin:#C3CCD7; --eq:#7D8794; --m1:#D3312B; --m2:#F09A8C; --mm0:#CDD4DD;
+  --display:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
+  --accent:#86A2FF; --accent-ink:#0F141B; --rest:#FFB547; --rest-soft:#33270F; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
+  --accent:#86A2FF; --accent-ink:#0F141B; --rest:#FFB547; --rest-soft:#33270F; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
+.app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 16px;box-sizing:border-box}
+.top{display:flex;align-items:center;gap:10px}
+.iconbtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:disabled{opacity:.35;cursor:default}
+.iconbtn svg{width:20px;height:20px}
+.progress{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.plabel{font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center}
+.segs{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+.seg{height:6px;border-radius:3px;background:var(--line)}
+.seg.done{background:var(--accent);opacity:.45}
+.seg.now{background:var(--accent)}
+.stage{flex:1 1 auto;min-height:240px;background:var(--stage);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;position:relative;padding:34px 12px 10px;box-sizing:border-box}
+.figwrap{flex:1;min-height:0;position:relative;display:grid;place-items:center}
+.c3d{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
+.c3d:active{cursor:grabbing}
+.nofig{color:var(--muted);font-size:14px;text-align:center;max-width:30ch;margin:0}
+.hint{flex:none;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer}
+.stagefoot{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.legend{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;line-height:1.3;min-width:0}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;flex:none}
+.legend .k1{background:var(--m1)} .legend .k2{background:var(--m2)}
+.legend.col{gap:8px;font-size:15px}
+.sheetsec{margin-top:6px;font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.tag{position:absolute;top:12px;left:12px;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card{display:flex;flex-direction:column;gap:8px}
+.name{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;letter-spacing:-0.02em;text-wrap:balance}
+.rx{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
+.chip{font-weight:700;font-size:13px;padding:4px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.namerow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.namerow .name{min-width:0}
+.tipsbtn{flex:none;width:44px;height:44px;margin:-6px -8px 0 0;border:0;border-radius:50%;background:transparent;color:var(--accent);display:grid;place-items:center;cursor:pointer}
+.tipsbtn svg{width:26px;height:26px}
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{width:100%;max-width:480px;background:var(--surface);color:var(--ink);border-radius:22px 22px 0 0;box-sizing:border-box;
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-top:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  max-height:80%;overflow-y:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.sheet{animation:none}}
+.sheethead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sheethead h2{margin:0;font-family:var(--display);font-weight:700;font-size:26px;line-height:1.05;letter-spacing:-0.02em}
+.tips{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.45}
+.tips li::marker{color:var(--accent)}
+.sets{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.slabel{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dot{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--display);font-weight:700;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.dot.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.btn{min-height:56px;border-radius:16px;border:0;font-family:var(--display);font-weight:700;font-size:19px;cursor:pointer;padding:0 18px}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.timerbtn{width:56px;height:56px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--rest);display:grid;place-items:center;cursor:pointer}
+.timerbtn svg{width:26px;height:26px}
+.ghost{background:var(--surface);color:var(--rest);border:2px solid var(--rest)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.rest{background:var(--rest-soft);border-radius:20px;padding:16px;display:flex;align-items:center;gap:16px}
+.ring{width:96px;height:96px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:28px;color:var(--rest);font-variant-numeric:tabular-nums}
+.restinfo{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.restlabel{font-family:var(--body);font-weight:700;font-size:15px;color:var(--rest)}
+.restbtns{display:flex;gap:8px;flex-wrap:wrap}
+.small{min-height:44px;padding:0 16px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer;border:2px solid var(--rest);background:transparent;color:var(--rest)}
+.small.fill{background:var(--rest);color:var(--surface)}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
+.plabel.left{text-align:left}
+.totpill{font-size:13px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+.finhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hero{margin:0;font-family:var(--display);font-weight:700;font-size:48px;line-height:.95;letter-spacing:-0.03em;text-wrap:balance}
+.hl{color:var(--accent)}
+.hello{margin:0;font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-0.02em}
+.bigweek{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:4px}
+.bwhead{display:flex;align-items:baseline;gap:8px}
+.bwnum{font-family:var(--display);font-weight:700;font-size:76px;line-height:.85;color:var(--accent);font-variant-numeric:tabular-nums}
+.bwof{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;letter-spacing:-0.02em}
+.bwlab{font-family:var(--body);font-weight:600;font-size:16px;color:var(--muted)}
+.bwrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bwtext{min-width:0}
+.bwdots{display:flex;gap:8px;flex:none}
+.bwd{width:44px;height:44px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:16px;color:var(--muted);box-sizing:border-box}
+.bwd.on{border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.bwd svg{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.bwsub{margin-top:10px;font-size:14px;color:var(--muted)}
+.decor{flex:1;min-height:90px;position:relative}
+.decor .figwrap{position:absolute;inset:0}
+.decor .c3d{pointer-events:none;cursor:default}
+.lede{margin:0;color:var(--muted);font-size:17px;line-height:1.45;max-width:40ch}
+.weekcard{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.weekdots{display:flex;gap:6px;flex:none}
+.wd{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box}
+.wd.on{background:var(--accent);border-color:var(--accent)}
+.wklab{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.1;letter-spacing:-0.01em}
+.wksub{font-size:14px;color:var(--muted);margin-top:2px}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.meta span{font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.btn.big{min-height:64px;font-size:22px}
+.grow{flex:1}
+.fine{margin:-4px 0 0;text-align:center;font-size:13px;color:var(--muted)}
+.hellorow{display:flex;align-items:center;gap:14px}
+.avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+.avpick{display:block;cursor:pointer;flex:none;border-radius:50%}
+.avpick:focus-within{outline:3px solid var(--accent);outline-offset:3px}
+.avph{display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:28px}
+.avatar.big.avph{font-size:52px}
+.avatar.big{width:128px;height:128px;border-width:4px;box-shadow:0 0 0 3px var(--accent)}
+.champ{position:relative;width:128px;height:128px;margin-top:8px}
+.champtick{position:absolute;right:-6px;bottom:-4px;width:46px;height:46px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);display:grid;place-items:center}
+.champtick svg{width:62%;height:62%}
+.champtick .badge-tick{stroke:var(--accent-ink)}
+.badge-tick{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:80;stroke-dashoffset:80;animation:tick .6s .15s ease-out forwards}
+@keyframes tick{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion: reduce){.badge-tick{animation:none;stroke-dashoffset:0}}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.eq{stroke:var(--muted);stroke-width:5;stroke-linecap:round;fill:none;opacity:.7}
+.eqf{fill:var(--muted);opacity:.7;stroke:none}
+.db{fill:var(--ink);stroke:none}
+.band{stroke:var(--rest);stroke-width:4;fill:none;stroke-linecap:round;opacity:.8}
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ---------- 3D figure: control points per keyframe, limbs solved with 2-bone IK ----------
+const View3D = (() => {
+  if (!window.THREE) return null;
+  const T = THREE, V = (x, y, z) => new T.Vector3(x, y, z);
+  const L_UA = 0.29, L_FA = 0.27, L_TH = 0.43, L_SH = 0.42;
+  const nrm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
+
+  // ---- exercise definitions (metres, y up). lat = body's left→right axis, u = pelvis→neck ----
+  const BAR_Y = 2.2;
+  const hangBase = { lat:[1,0,0], toe:nrm([0,-0.7,1]), sh:-0.05 };
+  const E = {};
+
+  E.chin = { cam:{az:72, el:8, dist:3.5, ty:1.55}, bar:true, band:true,
+    keys:[0,1.3,1.7,3.4],
+    poses:[
+      {...hangBase, P:[0,1.19,-0.02], N:[0,1.69,-0.02], LH:[-0.15,BAR_Y,0], RH:[0.15,BAR_Y,0], LF:[-0.06,0.52,-0.22], RF:[0.06,0.5,-0.26], poles:{LE:[0,-0.3,1], RE:[0,-0.3,1], LK:[0,0,1], RK:[0,0,1]}},
+      {...hangBase, P:[0,1.66,-0.2], N:[0,2.15,-0.12], LH:[-0.15,BAR_Y,0], RH:[0.15,BAR_Y,0], LF:[-0.06,1.02,-0.42], RF:[0.06,1.0,-0.46], poles:{LE:[-0.15,-1,0.8], RE:[0.15,-1,0.8], LK:[0,0,1], RK:[0,0,1]}},
+    ], seq:[0,1,1,0], muscles:{lats:'m1', ua:'m1', fa:'m2'}};
+
+  const wideTop = {...hangBase, P:[0,1.64,-0.12], N:[0,2.14,-0.08], LH:[-0.32,BAR_Y,0], RH:[0.32,BAR_Y,0], LF:[-0.1,0.95,-0.2], RF:[0.1,0.95,-0.2], poles:{LE:[-1,-0.4,-0.3], RE:[1,-0.4,-0.3], LK:[0,0,1], RK:[0,0,1]}};
+  const wideBot = {...hangBase, P:[0,1.2,0], N:[0,1.7,0], LH:[-0.32,BAR_Y,0], RH:[0.32,BAR_Y,0], LF:[-0.09,0.38,-0.06], RF:[0.09,0.38,-0.06], poles:{LE:[-1,-0.2,-0.3], RE:[1,-0.2,-0.3], LK:[0,0,1], RK:[0,0,1]}};
+  E.neg = { cam:{az:215, el:10, dist:3.6, ty:1.4}, bar:true, chair:true,
+    keys:[0,0.7,4.9,5.6,6.6], poses:[wideTop, wideBot], seq:[0,0,1,1,0], muscles:{lats:'m1', ua:'m2', fa:'m2'}};
+
+  E.pullup = { cam:{az:32, el:8, dist:3.6, ty:1.5}, bar:true, keys:[0,1.2,1.7,3.2,3.7], poses:[wideTop, wideBot], seq:[1,0,0,1,1], muscles:{lats:'m1', ua:'m2', fa:'m2'}};
+  const midGrip = {LH:[-0.25,BAR_Y,0], RH:[0.25,BAR_Y,0]};
+  const passive = {...hangBase, ...midGrip, P:[0,1.13,0], N:[0,1.63,0], sh:0.03, LF:[-0.09,0.32,-0.04], RF:[0.09,0.32,-0.04], poles:{LE:[-1,0,-0.2], RE:[1,0,-0.2], LK:[0,0,1], RK:[0,0,1]}};
+  const active = {...passive, P:[0,1.22,0], N:[0,1.72,0], sh:-0.06, LF:[-0.09,0.41,-0.04], RF:[0.09,0.41,-0.04]};
+  E.scap = { cam:{az:205, el:12, dist:3.2, ty:1.55}, bar:true, keys:[0,0.9,1.5,2.6], poses:[passive, active], seq:[0,1,1,0], muscles:{lats:'m1'}};
+
+  const hangA = {...active, sh:-0.04, P:[-0.015,1.2,0.03]}, hangB = {...active, sh:-0.04, P:[0.015,1.2,-0.03]};
+  E.hang = { cam:{az:200, el:10, dist:3.4, ty:1.45}, bar:true, keys:[0,2,4], poses:[hangA, hangB], seq:[0,1,0], muscles:{fa:'m1', lats:'m2'}};
+
+  const rowBot = { lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0.25,0.92,0], N:[-0.26,0.98,0],
+    LH:[-0.46,0.52,-0.2], RH:[-0.24,0.4,0.22], LF:[0.02,0.08,-0.2], RF:[0.36,0.08,0.24],
+    poles:{LE:[0.3,0,-1], RE:[0.4,0,0.6], LK:[-1,0,0], RK:[-1,0,0]}, db:['R'], dbAxis:[1,0,0]};
+  const rowTop = {...rowBot, RH:[0.02,0.82,0.22], poles:{...rowBot.poles, RE:[0.5,1,0.3]}};
+  E.row = { cam:{az:28, el:18, dist:2.9, ty:0.65, tx:0}, bench:true, keys:[0,0.9,1.4,2.6], poses:[rowBot,rowTop], seq:[0,1,1,0], muscles:{lats:'m1', uaR:'m2', deltR:'m2'}};
+
+  const pushPose = th => { const r = th*Math.PI/180, c = Math.cos(r), s = Math.sin(r), Fx = 0.81, Fy = 0.1;
+    return { lat:[0,0,1], toe:nrm([-0.6,-1,0]), sh:-0.04, P:[Fx-0.85*c, Fy+0.85*s-0.06, 0], N:[Fx-1.36*c, Fy+1.36*s-0.06, 0],
+      LH:[0,0.78,-0.24], RH:[0,0.78,0.24], LF:[Fx,Fy,-0.11], RF:[Fx,Fy,0.11],
+      poles:{LE:[1,0.6,-1], RE:[1,0.6,1], LK:[1,1,0], RK:[1,1,0]} }; };
+  E.push = { cam:{az:22, el:14, dist:3.0, ty:0.75, tx:0.25}, table:true, keys:[0,1.1,1.4,2.5], poses:[pushPose(67), pushPose(47)], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2', abs:'m2'}};
+
+  const pressBot = { lat:[0,0,-1], toe:[1,0,0], sh:-0.04, P:[0.36,0.12,0], N:[-0.14,0.12,0],
+    LH:[-0.08,0.36,0.36], RH:[-0.08,0.36,-0.36], LF:[0.76,0.07,0.15], RF:[0.76,0.07,-0.15],
+    poles:{LE:[0.2,-1,0.6], RE:[0.2,-1,-0.6], LK:[0,1,0.2], RK:[0,1,-0.2]}, db:['L','R'], dbAxis:[0,0,1]};
+  const pressTop = {...pressBot, LH:[-0.12,0.66,0.2], RH:[-0.12,0.66,-0.2]};
+  E.press = { cam:{az:8, el:30, dist:2.7, ty:0.3, tx:0.2}, floorOnly:true, keys:[0,1,1.4,2.6], poses:[pressBot, pressTop], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2'}};
+
+  const walk = (sw, lift) => { // sw: -1..1 which leg forward
+    const y = 0.08, base = 1.04 + (lift ? 0.02 : 0);
+    return { lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0,base,0], N:[0.02*0,base+0.5,0],
+      LF:[-0.28*sw, y + (lift && sw===0 ? 0 : 0) + (lift==='L'?0.12:0) + 0.06, -0.1],
+      RF:[0.28*sw, y + (lift==='R'?0.12:0) + 0.06, 0.1],
+      LH:[0.18*sw, 0.86, -0.22], RH:[-0.18*sw, 0.86, 0.22],
+      poles:{LE:[1,0,-0.2], RE:[1,0,0.2], LK:[-1,0,0], RK:[-1,0,0]} }; };
+  const stand = (LH, RH) => ({ lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0,0.96,0], N:[0,1.46,0],
+    LF:[0,0.06,-0.11], RF:[0,0.06,0.11], LH, RH, poles:{LE:[0,-1,0.2], RE:[0,-1,-0.2], LK:[-1,0,0], RK:[-1,0,0]} });
+  E.circ = (() => { const R = 0.09, poses = [];
+    for (let k = 0; k < 8; k++){ const a = k*Math.PI/4, dx = -Math.sin(a)*R, dy = Math.cos(a)*R; poses.push(stand([dx,1.41+dy,-0.71],[dx,1.41+dy,0.71])); }
+    const keys = [0], seq = [0]; let t = 0; const add = i => { t += 0.15; keys.push(+t.toFixed(2)); seq.push(i); };
+    for (let l = 0; l < 2; l++) for (let k = 1; k <= 8; k++) add(k % 8);
+    for (let l = 0; l < 2; l++) for (let k = 7; k >= 0; k--) add(k);
+    return { cam:{az:-55, el:8, dist:3.2, ty:0.95}, keys, poses, seq, muscles:{delt:'m1', lats:'m2'} }; })();
+  E.pull = { cam:{az:135, el:12, dist:3.2, ty:1.0}, pullband:true, keys:[0,0.9,1.3,2.2,2.6],
+    poses:[stand([-0.53,1.37,-0.2],[-0.53,1.37,0.2]), stand([-0.12,1.37,-0.69],[-0.12,1.37,0.69])], seq:[0,1,1,0,0], muscles:{lats:'m1', delt:'m2'} };
+
+  // ---- renderer ----
+  const canvas = document.createElement('canvas'); canvas.className = 'c3d';
+  const renderer = new T.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  if (T.sRGBEncoding) renderer.outputEncoding = T.sRGBEncoding;
+  const camera = new T.PerspectiveCamera(32, 1, 0.1, 50);
+  let scene, def, rig, mats, startT = 0, az = 0, el = 0, raf = 0, ro = null, bandMesh = null;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#999';
+  const col = n => new T.Color(css(n)).convertSRGBToLinear();
+
+  function makeMats(){
+    const m = c => new T.MeshStandardMaterial({color:col(c), roughness:0.62, metalness:0.02});
+    return { skin:m('--skin'), m1:m('--m1'), m2:m('--m2'), eq:new T.MeshStandardMaterial({color:col('--eq'), roughness:0.5, metalness:0.25}),
+      db:new T.MeshStandardMaterial({color:col('--ink'), roughness:0.4, metalness:0.5}), band:new T.MeshStandardMaterial({color:col('--rest'), roughness:0.7}) };
+  }
+  const SPH = new T.SphereGeometry(1, 28, 20), CYL = new T.CylinderGeometry(1, 1, 1, 24, 1, true);
+  function capsule(r, mat){ const g = new T.Group();
+    const c = new T.Mesh(CYL, mat), a = new T.Mesh(SPH, mat), b = new T.Mesh(SPH, mat);
+    [c,a,b].forEach(x => { x.castShadow = true; g.add(x); }); a.scale.setScalar(r); b.scale.setScalar(r);
+    g.set = (p, q) => { const d = q.clone().sub(p), len = d.length();
+      c.position.copy(p).addScaledVector(d, 0.5); c.scale.set(r, Math.max(len, 1e-4), r);
+      c.quaternion.setFromUnitVectors(V(0,1,0), d.normalize()); a.position.copy(p); b.position.copy(q); };
+    g.mat = m => { c.material = a.material = b.material = m; };
+    return g; }
+  function ellip(rx, ry, rz, mat){ const e = new T.Mesh(SPH, mat); e.castShadow = true; e.matrixAutoUpdate = false;
+    e.set = (c, lat, u, f) => { e.matrix.makeBasis(lat.clone().multiplyScalar(rx), u.clone().multiplyScalar(ry), f.clone().multiplyScalar(rz)); e.matrix.setPosition(c); };
+    return e; }
+  function box(w, h, d, x, y, z, mat){ const b = new T.Mesh(new T.BoxGeometry(w,h,d), mat); b.position.set(x,y,z); b.castShadow = b.receiveShadow = true; scene.add(b); return b; }
+  function rod(a, b, r, mat){ const c = capsule(r, mat); c.set(a, b); scene.add(c); return c; }
+
+  function buildScene(key){
+    scene = new T.Scene(); def = E[key]; mats = makeMats(); bandMesh = null;
+    scene.add(new T.HemisphereLight(0xffffff, 0x8a8f99, 0.75));
+    const sun = new T.DirectionalLight(0xffffff, 0.85); sun.position.set(2.5, 5, 3.5); sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, {left:-2.5, right:2.5, top:3, bottom:-1, near:0.5, far:12}); scene.add(sun);
+    const fill = new T.DirectionalLight(0xffffff, 0.3); fill.position.set(-3, 2, -2); scene.add(fill);
+    const ground = new T.Mesh(new T.CircleGeometry(2.2, 48), new T.ShadowMaterial({opacity:0.16}));
+    ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+    const eq = mats.eq;
+    if (def.bar){ rod(V(-0.62,BAR_Y,0), V(0.62,BAR_Y,0), 0.018, eq); rod(V(-0.62,BAR_Y,0), V(-0.62,BAR_Y,-0.18), 0.022, eq); rod(V(0.62,BAR_Y,0), V(0.62,BAR_Y,-0.18), 0.022, eq);
+      box(0.08, 0.5, 0.04, -0.66, BAR_Y-0.05, -0.2, eq); box(0.08, 0.5, 0.04, 0.66, BAR_Y-0.05, -0.2, eq); }
+    if (def.chair){ box(0.44,0.04,0.42, 0,0.46,-0.5, eq); [[-0.19,-0.69],[0.19,-0.69],[-0.19,-0.31],[0.19,-0.31]].forEach(([x,z]) => box(0.03,0.44,0.03, x,0.22,z, eq)); }
+    if (def.bench){ box(0.5,0.04,0.44, -0.5,0.46,-0.18, eq); [[-0.72,-0.37],[-0.28,-0.37],[-0.72,0.01],[-0.28,0.01]].forEach(([x,z]) => box(0.03,0.44,0.03, x,0.22,z, eq)); }
+    if (def.table){ box(0.8,0.04,0.9, -0.38,0.76,0, eq); [[-0.74,-0.4],[-0.04,-0.4],[-0.74,0.4],[-0.04,0.4]].forEach(([x,z]) => box(0.04,0.74,0.04, x,0.37,z, eq)); }
+    if (def.treadmill){ box(1.5,0.07,0.6, 0.1,0.035,0, eq); rod(V(-0.6,0.07,-0.28), V(-0.72,1.15,-0.28), 0.02, eq); rod(V(-0.6,0.07,0.28), V(-0.72,1.15,0.28), 0.02, eq);
+      box(0.12,0.22,0.6, -0.74,1.2,0, eq); rod(V(-0.68,1.05,-0.28), V(-0.35,1.0,-0.3), 0.016, eq); rod(V(-0.68,1.05,0.28), V(-0.35,1.0,0.3), 0.016, eq); }
+
+    const mc = def.muscles || {}, mat = k => mats[mc[k]] || mats.skin;
+    rig = {
+      chest: ellip(0.165,0.19,0.105, mats.skin), abd: ellip(0.135,0.15,0.095, mats.skin), pelvis: ellip(0.155,0.1,0.105, mats.skin),
+      pecs: mc.pecs ? ellip(0.15,0.095,0.095, mat('pecs')) : null, lats: mc.lats ? ellip(0.162,0.17,0.093, mat('lats')) : null,
+      abs: mc.abs ? ellip(0.1,0.13,0.088, mat('abs')) : null,
+      head: ellip(0.094,0.115,0.104, mats.skin), neck: capsule(0.045, mats.skin),
+      uaL: capsule(0.046, mat(mc.uaL ? 'uaL' : 'ua')), uaR: capsule(0.046, mat(mc.uaR ? 'uaR' : 'ua')),
+      faL: capsule(0.037, mat('fa')), faR: capsule(0.037, mat('fa')),
+      dL: new T.Mesh(SPH, mat(mc.deltL ? 'deltL' : 'delt')), dR: new T.Mesh(SPH, mat(mc.deltR ? 'deltR' : 'delt')),
+      hL: new T.Mesh(SPH, mats.skin), hR: new T.Mesh(SPH, mats.skin),
+      thL: capsule(0.068, mat('thigh')), thR: capsule(0.068, mat('thigh')), shL: capsule(0.05, mat('shin')), shR: capsule(0.05, mat('shin')),
+      ftL: capsule(0.038, mats.skin), ftR: capsule(0.038, mats.skin), dbs:{}
+    };
+    [rig.dL, rig.dR].forEach(d => { d.scale.setScalar(0.062); d.castShadow = true; });
+    [rig.hL, rig.hR].forEach(d => { d.scale.set(0.045,0.05,0.04); d.castShadow = true; });
+    Object.values(rig).forEach(o => { if (o && o.isObject3D) scene.add(o); });
+    if (def.pullband){ rig.pband = capsule(0.012, mats.band); scene.add(rig.pband); }
+    const dbList = new Set(def.poses.flatMap(p => p.db || []));
+    dbList.forEach(s => { const g = new T.Group(); const h = new T.Mesh(new T.CylinderGeometry(0.016,0.016,0.16,12), mats.db);
+      const p1 = new T.Mesh(new T.CylinderGeometry(0.055,0.055,0.05,20), mats.db), p2 = p1.clone();
+      p1.position.y = 0.08; p2.position.y = -0.08; [h,p1,p2].forEach(m => { m.castShadow = true; g.add(m); }); scene.add(g); rig.dbs[s] = g; });
+    const c = def.cam; az = c.az*Math.PI/180; el = c.el*Math.PI/180; startT = performance.now();
+  }
+
+  const lerpA = (a, b, t) => a.map((v, i) => v + (b[i] - v)*t);
+  function mix(a, b, t){ const o = {}; for (const k in a){ const va = a[k], vb = b[k];
+      if (k === 'poles'){ o.poles = {}; for (const j in va) o.poles[j] = lerpA(va[j], vb[j], t); }
+      else if (Array.isArray(va) && typeof va[0] === 'number') o[k] = lerpA(va, vb, t);
+      else if (typeof va === 'number') o[k] = va + (vb - va)*t; else o[k] = va; }
+    return o; }
+  function ik(A, Tg, l1, l2, pole){ const d0 = Tg.clone().sub(A); let d = d0.length(); const axis = d0.normalize();
+    d = Math.min(Math.max(d, Math.abs(l1-l2) + 1e-3), (l1+l2)*0.9995);
+    const a = (l1*l1 - l2*l2 + d*d)/(2*d), h = Math.sqrt(Math.max(l1*l1 - a*a, 0));
+    const p = V(...pole); const perp = p.sub(axis.clone().multiplyScalar(p.dot(axis))).normalize();
+    const J = A.clone().addScaledVector(axis, a).addScaledVector(perp, h);
+    const End = A.clone().addScaledVector(axis, d); return [J, End]; }
+
+  function pose(t){ const ks = def.keys, total = ks[ks.length-1]; t = t % total;
+    let i = 0; while (i < ks.length - 2 && t > ks[i+1]) i++;
+    const f = (t - ks[i])/(ks[i+1] - ks[i]), e = f*f*f*(f*(f*6 - 15) + 10);
+    return mix(def.poses[def.seq[i]], def.poses[def.seq[i+1]], Math.min(Math.max(e,0),1)); }
+
+  function apply(p){
+    const P = V(...p.P), N = V(...p.N), u = N.clone().sub(P).normalize();
+    let lat = V(...p.lat); lat.sub(u.clone().multiplyScalar(lat.dot(u))).normalize();
+    const f = lat.clone().cross(u).normalize();
+    const S = s => N.clone().addScaledVector(lat, 0.18*s).addScaledVector(u, p.sh);
+    const LS = S(-1), RS = S(1), Hp = s => P.clone().addScaledVector(lat, 0.09*s).addScaledVector(u, -0.04);
+    rig.chest.set(N.clone().addScaledVector(u, -0.17), lat, u, f);
+    rig.abd.set(P.clone().addScaledVector(u, 0.2), lat, u, f);
+    rig.pelvis.set(P.clone().addScaledVector(u, 0.0), lat, u, f);
+    if (rig.pecs) rig.pecs.set(N.clone().addScaledVector(u, -0.15).addScaledVector(f, 0.03), lat, u, f);
+    if (rig.lats) rig.lats.set(N.clone().addScaledVector(u, -0.21).addScaledVector(f, -0.026), lat, u, f);
+    if (rig.abs) rig.abs.set(P.clone().addScaledVector(u, 0.2).addScaledVector(f, 0.022), lat, u, f);
+    const neckTop = N.clone().addScaledVector(u, 0.07); rig.neck.set(N.clone().addScaledVector(u, -0.03), neckTop);
+    rig.head.set(N.clone().addScaledVector(u, 0.17).addScaledVector(f, 0.015), lat, u, f);
+    rig.dL.position.copy(LS); rig.dR.position.copy(RS);
+    [['L', LS, 'LH', 'LE', rig.uaL, rig.faL, rig.hL], ['R', RS, 'RH', 'RE', rig.uaR, rig.faR, rig.hR]].forEach(([s, Sh, hk, ek, ua, fa, hand]) => {
+      const [E2, W] = ik(Sh, V(...p[hk]), L_UA, L_FA, p.poles[ek]); ua.set(Sh, E2); fa.set(E2, W);
+      const dir = W.clone().sub(E2).normalize(); hand.position.copy(W).addScaledVector(dir, 0.035); hand.quaternion.setFromUnitVectors(V(0,1,0), dir);
+      if (rig.dbs[s]){ rig.dbs[s].position.copy(W).addScaledVector(dir, 0.04); rig.dbs[s].quaternion.setFromUnitVectors(V(0,1,0), V(...(p.dbAxis||[0,0,1])).normalize()); } });
+    if (rig.pband) rig.pband.set(rig.hL.position, rig.hR.position);
+    const toe = V(...p.toe).normalize();
+    [['L', -1, 'LF', 'LK', rig.thL, rig.shL, rig.ftL], ['R', 1, 'RF', 'RK', rig.thR, rig.shR, rig.ftR]].forEach(([s, sg, fk, kk, th, sh, ft]) => {
+      const H = Hp(sg), [K, A] = ik(H, V(...p[fk]), L_TH, L_SH, p.poles[kk]); th.set(H, K); sh.set(K, A); ft.set(A, A.clone().addScaledVector(toe, 0.15));
+      if (s === 'L') rig._knee = K; });
+    if (def.band){ if (bandMesh){ scene.remove(bandMesh); bandMesh.geometry.dispose(); }
+      const K = rig._knee, top = BAR_Y;
+      const pts = [V(-0.05,top,0), V(-0.05,(top+K.y)/2, (K.z)/2), V(K.x-0.04, K.y-0.07, K.z+0.02), V(K.x+0.05, K.y-0.07, K.z+0.02), V(0.03,(top+K.y)/2,(K.z)/2), V(0.03,top,0)];
+      bandMesh = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 48, 0.011, 8, false), mats.band); scene.add(bandMesh); }
+  }
+
+  function frame(now){
+    raf = requestAnimationFrame(frame);
+    const wrap = canvas.parentElement; if (!wrap || document.hidden) return;
+    const t = reduced() ? def.keys[1]*0.999 : (now - startT)/1000;
+    apply(pose(t));
+    const c = def.cam, tgt = V(c.tx||0, c.ty, c.tz||0);
+    camera.position.set(tgt.x + c.dist*Math.sin(az)*Math.cos(el), tgt.y + c.dist*Math.sin(el), tgt.z + c.dist*Math.cos(az)*Math.cos(el));
+    camera.lookAt(tgt); renderer.render(scene, camera);
+  }
+  const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){ const w = canvas.parentElement; if (!w) return; const r = w.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return; renderer.setSize(r.width, r.height, false); camera.aspect = r.width/r.height;
+    camera.fov = camera.aspect < 0.9 ? 40 : 30; camera.updateProjectionMatrix(); }
+
+  // drag to rotate
+  let drag = null, lastTap = 0, tween = 0;
+  function easeHome(){ if (!def) return; cancelAnimationFrame(tween);
+    const a0 = az, e0 = el, a1 = def.cam.az*Math.PI/180, e1 = def.cam.el*Math.PI/180, t0 = performance.now();
+    let da = ((a1 - a0) % (2*Math.PI) + 3*Math.PI) % (2*Math.PI) - Math.PI;
+    (function step(now){ const f = Math.min(1, (now - t0)/350), k = 1 - Math.pow(1 - f, 3);
+      az = a0 + da*k; el = e0 + (e1 - e0)*k; if (f < 1) tween = requestAnimationFrame(step); })(t0); }
+  canvas.addEventListener('pointerdown', e => { cancelAnimationFrame(tween); drag = {x:e.clientX, y:e.clientY, az, el, t:performance.now(), moved:false}; try{ canvas.setPointerCapture(e.pointerId); }catch(_){} });
+  canvas.addEventListener('pointermove', e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 8) drag.moved = true;
+    az = drag.az - dx*0.01; el = Math.min(1.2, Math.max(-0.15, drag.el + dy*0.008)); });
+  canvas.addEventListener('pointerup', () => { if (!drag) return; const now = performance.now();
+    if (!drag.moved && now - drag.t < 300){ if (now - lastTap < 400){ lastTap = 0; easeHome(); } else lastTap = now; } else lastTap = 0;
+    drag = null; });
+  canvas.addEventListener('pointercancel', () => { drag = null; });
+
+  let current = null;
+  return {
+    mount(wrap, key){ wrap.appendChild(canvas); if (ro) ro.disconnect(); ro = new ResizeObserver(resize); ro.observe(wrap); resize();
+      if (key !== current){ current = key; buildScene(key); } else if (wrap.closest('.decor')) this.resetView(); if (!raf) raf = requestAnimationFrame(frame); },
+    resetView(){ if (def){ az = def.cam.az*Math.PI/180; el = def.cam.el*Math.PI/180; } },
+    rebuild(){ if (current) buildScene(current); },
+    stop(){ cancelAnimationFrame(raf); raf = 0; }
+  };
+})();
+
+const STEPS = [
+  {id:'circ', mpl:'Shoulders', msl:'Upper back', group:'Warm-up', name:'Arm circles', big:'10 + 10', unit:'forwards, then backwards', tips:['Stand tall with your arms straight out to the sides.','Make small circles first, then gradually bigger ones.','10 forwards, then 10 backwards.'], sets:1, rest:0, noTimer:true, anim:'circ'},
+  {id:'pull', mpl:'Upper back', msl:'Rear shoulders', group:'Warm-up', name:'Band pull-aparts', big:'15', unit:'reps', chip:'1 small band', tips:['Hold the band at chest height with straight arms, hands shoulder-width apart.','Pull it apart until it touches your chest, squeezing your shoulder blades together.','Return slowly. Keep your shoulders down, away from your ears.'], sets:1, rest:0, noTimer:true, anim:'pull'},
+  {id:'scap', mp:['TRAPEZIUS'], ms:['UPPER_BACK'], mpl:'Lower traps', msl:'Lats', group:'Pull', name:'Scapular pulls', big:'6–8', unit:'reps', tips:['Hang with straight arms.','Pull your shoulder blades down and back, like putting them in your back pockets.','Elbows stay locked. The movement is small.','This teaches your back, not your arms, to start every pull.'], sets:3, rest:60, anim:'scap'},
+  {id:'neg', mp:['UPPER_BACK'], ms:['BICEPS','FOREARM','BACK_DELTOIDS','TRAPEZIUS'], mpl:'Lats and upper back', msl:'Biceps, forearms, rear shoulders', group:'Pull · key exercise', name:'Pull-up negatives', big:'3', unit:'reps · 3–5 sec down', chip:'No band', tips:['Start with your chin already over the bar. Step off the chair, don\'t jump up.','Lower as slowly as you can, 3–5 seconds, all the way to straight arms.','Fight the bottom half. That\'s where people drop.','Step back up on the chair for each rep.','Only use the 2 small bands if you drop in under 2 seconds.'], sets:3, rest:90, anim:'neg'},
+  {id:'chin', mp:['UPPER_BACK','BICEPS'], ms:['FOREARM','TRAPEZIUS'], mpl:'Lats and biceps', msl:'Forearms, traps', group:'Pull', name:'Banded chin-ups', big:'Max', unit:'clean reps', chip:'2 small bands', tips:['Palms facing you.','Pull your shoulders down first, then pull up.','Clean reps only. Stop when your form breaks.','At 5+ reps for all sets, switch to 1 small band.'], sets:3, rest:120, anim:'chin'},
+  {id:'row', mp:['UPPER_BACK','TRAPEZIUS'], ms:['BICEPS','BACK_DELTOIDS','FOREARM'], mpl:'Lats and mid-back', msl:'Biceps, rear shoulder', group:'Pull', name:'One-arm rows', big:'8–10', unit:'reps each side', tips:['One hand on a chair, back flat and close to parallel with the floor.','Pull the dumbbell toward your hip, not your chest.','Lower it slowly with control.','Both sides count as 1 set.','When 3 × 15 feels easy, go up a weight and start back at 8 reps.'], sets:3, rest:60, anim:'row'},
+  {id:'push', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS','ABS'], mpl:'Chest', msl:'Triceps, front shoulders, core', group:'Push', name:'Incline push-ups', big:'8–10', unit:'reps', chip:'Counter or table', tips:['Use a counter or table high enough for 8–10 good reps.','Keep your body in one straight line, head to heels.','Lower your chest to the edge, then push away.','At 3 × 12, move to a lower surface.'], sets:3, rest:60, anim:'push'},
+  {id:'press', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS'], mpl:'Chest', msl:'Triceps, front shoulders', group:'Push', name:'Floor press', big:'10', unit:'reps', tips:['Lie on your back with knees bent.','Lower until your elbows touch the floor.','Press straight up over your chest.','When 10 reps feels easy, go up a weight.'], sets:3, rest:60, anim:'press'},
+  {id:'hang', mp:['FOREARM'], ms:['UPPER_BACK','TRAPEZIUS'], mpl:'Grip and forearms', msl:'Lats, traps', group:'Finish', name:'Dead hang', big:'Max', unit:'hold · aim 30 s+', tips:['Hang with straight arms and a firm grip.','Keep your shoulders slightly pulled down, not up by your ears.','Breathe steadily.','Aim to build up to 30 seconds or more.'], sets:2, rest:60, anim:'hang'}
+];
+
+const KEY='pullup-coach-v1';
+const AKEY='pullup-coach-avatar';
+let AVATAR=null; try{ AVATAR=localStorage.getItem(AKEY); }catch(e){}
+function avatarHTML(cls){
+  const inner = AVATAR ? `<img class="${cls}" src="${AVATAR}" alt="Sindhu">` : `<span class="${cls} avph" aria-hidden="true">S</span>`;
+  return `<label class="avpick" aria-label="Change photo">${inner}<input type="file" accept="image/*" class="avinput" hidden></label>`;
+}
+function bindAvatar(){ document.querySelectorAll('.avinput').forEach(inp=>inp.onchange=()=>{
+  const f=inp.files&&inp.files[0]; if(!f) return; const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{ const n=240, c=document.createElement('canvas'); c.width=c.height=n; const k=Math.min(img.width,img.height);
+    c.getContext('2d').drawImage(img,(img.width-k)/2,(img.height-k)/2,k,k,0,0,n,n); URL.revokeObjectURL(url);
+    AVATAR=c.toDataURL('image/jpeg',0.85); try{ localStorage.setItem(AKEY,AVATAR); }catch(e){} render(); };
+  img.src=url; }); }
+const HKEY='pullup-coach-history', FINISH_MS=3*60*1000;
+const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today = () => ymd(new Date());
+function fresh(){ return {date:today(), step:0, done:{}, finished:false, view:'welcome'}; }
+let S = fresh();
+try{ const raw = JSON.parse(localStorage.getItem(KEY));
+  if(raw && raw.date===today()){
+    if(raw.finished && raw.finishedAt && Date.now()-raw.finishedAt < FINISH_MS) S = raw;
+    else if(!raw.finished && raw.view==='workout') S = raw;
+  } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let history = [];
+try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
+function logSession(){ if(!history.includes(today())) history.push(today()); try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
+function weekCount(){ const d=new Date(); const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)); const start=ymd(mon);
+  return history.filter(x=>x>=start && x<=today()).length; }
+let homeTimer = null;
+function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; clearInterval(tick); logSession(); save(); render(); confetti(); scheduleHome(); }
+function scheduleHome(){ clearTimeout(homeTimer); if(!S.finished) return; const left = FINISH_MS - (Date.now()-(S.finishedAt||0));
+  homeTimer = setTimeout(goHome, Math.max(0,left)); }
+function goHome(){ clearTimeout(homeTimer); S=fresh(); save(); render(); }
+function startWorkout(){ unlockAudio(); keepAwake(); S=fresh(); S.view='workout'; save(); render(); }
+
+let rest = null; // {end,total}
+let tipsOpen = false;
+let tick = null, audio = null, wake = null;
+
+const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const ICON = {
+  prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+};
+
+function keepAwake(){ try{ if(!wake && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{wake=w; w.addEventListener('release',()=>wake=null);}).catch(()=>{}); }catch(e){} }
+function beep(){
+  try{
+    audio = audio || new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.25,0.5].forEach(t=>{ const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=880; o.connect(g); g.connect(audio.destination);
+      g.gain.setValueAtTime(0.0001,audio.currentTime+t); g.gain.exponentialRampToValueAtTime(0.3,audio.currentTime+t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,audio.currentTime+t+0.18);
+      o.start(audio.currentTime+t); o.stop(audio.currentTime+t+0.2); });
+  }catch(e){}
+  try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
+}
+function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume && audio.resume(); }catch(e){} }
+
+function startRest(sec){
+  unlockAudio(); keepAwake();
+  rest = {end:Date.now()+sec*1000, total:sec};
+  clearInterval(tick); tick = setInterval(updateRest, 250);
+  render();
+}
+function stopRest(){ rest=null; clearInterval(tick); render(); }
+function updateRest(){
+  if(!rest) return;
+  const left = (rest.end-Date.now())/1000;
+  if(left<=0){ beep(); stopRest(); return; }
+  const t=document.getElementById('rt'), c=document.getElementById('rc');
+  if(t) t.textContent = fmt(left);
+  if(c) c.style.strokeDashoffset = String(289*(1-left/rest.total));
+}
+
+function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render(); }
+
+function render(){
+  const app=document.getElementById('app');
+  if(S.finished){
+    const n = history.length, wk = Math.min(weekCount(),3);
+    app.innerHTML = `<div class="screen finish">
+      <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>
+        <button class="iconbtn" id="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button></div>
+      <div class="champ">${avatarHTML('avatar big')}<span class="champtick" aria-hidden="true"><svg viewBox="0 0 120 120"><path d="M34 62l17 17 36-40" class="badge-tick"/></svg></span></div>
+      <h1 class="hero">Session<br>done!</h1>
+      <p class="lede">One step closer to your first pull-up.</p>
+      <div class="weekcard"><div class="weekdots">${[0,1,2].map(i=>`<span class="wd ${i<wk?'on':''}"></span>`).join('')}</div>
+        <div class="wklab">${wk} of 3 this week</div></div>
+</div>`;
+    document.getElementById('home').onclick=goHome; bindAvatar();
+    return;
+  }
+  if(S.view!=='workout'){
+    const n = history.length, wk = Math.min(weekCount(),3), h = new Date().getHours();
+    const hello = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+    app.innerHTML = `<div class="screen welcome">
+      <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>${n?`<span class="totpill">${n} session${n>1?'s':''} total</span>`:''}</div>
+      <div class="hellorow">${avatarHTML('avatar')}<h1 class="hello">${hello},<br><span class="hl">Sindhu</span></h1></div>
+      <section class="bigweek" aria-label="Sessions this week">
+        <div class="bwrow"><div class="bwtext"><div class="bwhead"><span class="bwnum">${wk}</span><span class="bwof">of 3</span></div>
+        <div class="bwlab">${wk>=3?'Full week done!':'sessions this week'}</div></div>
+        <div class="bwdots">${[0,1,2].map(i=>`<span class="bwd ${i<wk?'on':''}" aria-label="Session ${i+1}${i<wk?' done':''}">${i<wk?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':i+1}</span>`).join('')}</div></div>
+      </section>
+      <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
+      <button class="btn primary big" id="start">Start workout</button></div>`;
+    if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
+    document.getElementById('start').onclick=startWorkout; bindAvatar();
+    return;
+  }
+  const st=STEPS[S.step], done=S.done[st.id]||0, complete=done>=st.sets, last=S.step===STEPS.length-1;
+  const segs=STEPS.map((x,i)=>`<div class="seg ${i<S.step?'done':''} ${i===S.step?'now':''}"></div>`).join('');
+  const primaryLabel = complete ? (last?'Finish session':'Next exercise') : (st.sets===1?'Done':`Done · set ${done+1} of ${st.sets}`);
+  const timerLabel = st.timerLabel || `Rest ${fmt(st.rest)}`;
+  const restBlock = rest ? `<div class="rest" role="timer" aria-live="off">
+      <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="7"/>
+      <circle id="rc" cx="50" cy="50" r="46" fill="none" stroke="var(--rest)" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg>
+      <div class="t" id="rt">${fmt((rest.end-Date.now())/1000)}</div></div>
+      <div class="restinfo"><div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}${!complete&&st.id!=='warm'?` · set ${done+1} next`:''}</div>
+      <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` :
+    `<div class="actions"><button class="btn primary" id="primary">${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
+
+  app.innerHTML = `
+    <div class="top">
+      <button class="iconbtn" id="prev" aria-label="Previous exercise" ${S.step===0?'disabled':''}>${ICON.prev}</button>
+      <div class="progress"><div class="plabel">Exercise ${S.step+1} of ${STEPS.length}</div><div class="segs">${segs}</div></div>
+      <button class="iconbtn" id="next" aria-label="Next exercise" ${last?'disabled':''}>${ICON.next}</button>
+    </div>
+    <div class="stage"><div class="tag">${st.group}</div>
+      <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
+      <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span><span><i class="k2"></i>${st.msl}</span></div></div></div>
+    <div class="card">
+      <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
+      <div class="rx"><span class="big">${st.sets>1?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span>${st.chip?`<span class="chip">${st.chip}</span>`:''}</div>
+    </div>
+    ${restBlock}
+    <div class="scrim" id="scrim" ${tipsOpen?'':'hidden'}>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheettitle">
+        <div class="sheethead"><h2 id="sheettitle">${st.name}</h2><button class="iconbtn" id="closetips" aria-label="Close tips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <ul class="tips">${st.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  if(View3D){ View3D.mount(document.getElementById('figwrap'), st.anim); }
+  document.getElementById('tipsbtn').onclick=()=>{ tipsOpen=true; document.getElementById('scrim').hidden=false; document.getElementById('closetips').focus(); };
+  const closeTips=()=>{ tipsOpen=false; document.getElementById('scrim').hidden=true; document.getElementById('tipsbtn').focus(); };
+  document.getElementById('closetips').onclick=closeTips;
+  document.getElementById('scrim').onclick=e=>{ if(e.target.id==='scrim') closeTips(); };
+
+  document.getElementById('prev').onclick=()=>go(S.step-1);
+  document.getElementById('next').onclick=()=>go(S.step+1);
+  if(rest){
+    document.getElementById('plus').onclick=()=>{ rest.end+=15000; rest.total+=15; updateRest(); };
+    document.getElementById('skip').onclick=stopRest;
+    updateRest();
+  } else {
+    if(!st.noTimer) document.getElementById('timer').onclick=()=>startRest(st.rest);
+    document.getElementById('primary').onclick=()=>{
+      keepAwake();
+      if(complete){ if(last) finishSession(); else go(S.step+1); return; }
+      S.done[st.id]=done+1; save();
+      if(done+1<st.sets){ startRest(st.rest); return; }
+      if(last){ finishSession(); return; }
+      go(S.step+1); if(!st.noTimer) startRest(st.rest);
+    };
+  }
+}
+function nextDay(){
+  const d=new Date().getDay(); // 0 Sun
+  const map={0:'Monday',1:'Wednesday',2:'Wednesday',3:'Friday',4:'Friday',5:'Monday',6:'Monday'};
+  return map[d];
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; } });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>View3D&&View3D.rebuild()); new MutationObserver(()=>View3D&&View3D.rebuild()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
+function confetti(){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c=document.createElement('canvas'); c.className='confetti'; document.body.appendChild(c);
+  const dpr=Math.min(window.devicePixelRatio||1,2), W=innerWidth, H=innerHeight; c.width=W*dpr; c.height=H*dpr; const x=c.getContext('2d'); x.scale(dpr,dpr);
+  const cs=getComputedStyle(document.documentElement), cols=['--accent','--m1','--rest','--m2'].map(v=>cs.getPropertyValue(v).trim());
+  const P=Array.from({length:140},()=>({x:W/2+(Math.random()-0.5)*60,y:H*0.35,vx:(Math.random()-0.5)*9,vy:-Math.random()*11-4,r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,w:6+Math.random()*6,h:3+Math.random()*4,c:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0=performance.now();
+  (function f(now){ const e=(now-t0)/1000; x.clearRect(0,0,W,H);
+    P.forEach(p=>{ p.vy+=0.28; p.vx*=0.99; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.globalAlpha=Math.max(0,1-e/3.2); x.fillStyle=p.c; x.fillRect(-p.w/2,-p.h/2,p.w,p.h); x.restore(); });
+    if(e<3.3) requestAnimationFrame(f); else c.remove(); })(t0);
+}
+render(); scheduleHome();
+</script>
+
+</body>
+</html>
