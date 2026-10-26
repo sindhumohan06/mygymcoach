@@ -1,6 +1,6 @@
 *{-webkit-tap-highlight-color:transparent}
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}
-body{margin:0;font:14px system-ui,sans-serif;overscroll-behavior:none}
+body{margin:0;font:14px system-ui,sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 /* One-screen session app: progress strip, figure stage, exercise card, thumb-zone actions. */
@@ -17,7 +17,7 @@ img{max-width:100%}
   --bg:#0D0D0D; --surface:#1B1B1B; --ink:#F2F2F2; --muted:#A3A3A3; --line:#303030;
   --accent:#F2F2F2; --accent-ink:#0D0D0D; --band:#FFB547; --stage:#151515; --skin:#6F6F6F; --eq:#5E5E5E; --m1:#FF5A4E; --m2:#A14B42; --mm0:#313131; color-scheme:dark}
 [hidden]{display:none!important}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
 .app{height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px;
