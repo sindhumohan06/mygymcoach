@@ -26,16 +26,16 @@ img{max-width:100%}
 /* One-screen session app: progress strip, figure stage, exercise card, thumb-zone actions. */
 :root{
   --bg:#EDF0F4; --surface:#FFFFFF; --ink:#16202B; --muted:#5B6776; --line:#D5DBE3;
-  --accent:#2F55D4; --accent-ink:#FFFFFF; --rest:#9A5A00; --rest-soft:#FBEBD2; --stage:#E2E7EE; --skin:#C3CCD7; --eq:#7D8794; --m1:#D3312B; --m2:#F09A8C; --mm0:#CDD4DD;
+  --accent:#2F55D4; --accent-ink:#FFFFFF; --band:#9A5A00; --stage:#E2E7EE; --skin:#C3CCD7; --eq:#7D8794; --m1:#D3312B; --m2:#F09A8C; --mm0:#CDD4DD;
   --display:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
-  --accent:#86A2FF; --accent-ink:#0F141B; --rest:#FFB547; --rest-soft:#33270F; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}}
+  --accent:#86A2FF; --accent-ink:#0F141B; --band:#FFB547; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
-  --accent:#86A2FF; --accent-ink:#0F141B; --rest:#FFB547; --rest-soft:#33270F; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}
+  --accent:#86A2FF; --accent-ink:#0F141B; --band:#FFB547; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
@@ -90,19 +90,18 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
 .btn{min-height:56px;border-radius:16px;border:0;font-family:var(--display);font-weight:700;font-size:19px;cursor:pointer;padding:0 18px}
 .primary{background:var(--accent);color:var(--accent-ink)}
-.timerbtn{width:56px;height:56px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--rest);display:grid;place-items:center;cursor:pointer}
+.timerbtn{width:56px;height:56px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;cursor:pointer}
 .timerbtn svg{width:26px;height:26px}
-.ghost{background:var(--surface);color:var(--rest);border:2px solid var(--rest)}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.rest{background:var(--rest-soft);border-radius:20px;padding:16px;display:flex;align-items:center;gap:16px}
+.rest{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;align-items:center;gap:16px}
 .ring{width:96px;height:96px;flex:none;position:relative}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring .t{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:28px;color:var(--rest);font-variant-numeric:tabular-nums}
+.ring .t{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
 .restinfo{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
-.restlabel{font-family:var(--body);font-weight:700;font-size:15px;color:var(--rest)}
+.restlabel{font-family:var(--body);font-weight:700;font-size:15px;color:var(--muted)}
 .restbtns{display:flex;gap:8px;flex-wrap:wrap}
-.small{min-height:44px;padding:0 16px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer;border:2px solid var(--rest);background:transparent;color:var(--rest)}
-.small.fill{background:var(--rest);color:var(--surface)}
+.small{min-height:44px;padding:0 16px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer;border:2px solid var(--accent);background:transparent;color:var(--accent)}
+.small.fill{background:var(--accent);color:var(--accent-ink)}
 /* After the first set the demo shrinks and the done button / rest timer take over. */
 .zone{display:contents}
 .focus .stage{flex:0 0 clamp(120px,22vh,180px);min-height:0;padding:8px}
@@ -110,9 +109,9 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .focus .name{font-size:28px}
 .focus .zone{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
 .fcard{flex:1;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px 18px;gap:10px}
-.fcard .rx{flex:1;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
-.fcard .big{font-size:72px;line-height:1}
-.fcard .rx .slabel{font-size:17px!important}
+.fcard:not(.resting) .rx{flex:1;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
+.fcard:not(.resting) .big{font-size:72px;line-height:1}
+.fcard:not(.resting) .rx .slabel{font-size:17px!important}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--line)}
 .setnum{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
 .setnum span{color:var(--muted)}
@@ -122,12 +121,12 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .focus .actions .btn{min-height:clamp(88px,16vh,128px);font-size:26px}
 .focus .timerbtn{width:72px;height:auto}
 .focus .timerbtn svg{width:32px;height:32px}
-.focus .rest{flex:1;min-height:0;flex-direction:column;justify-content:center;gap:18px;padding:20px}
-.focus .ring{width:clamp(150px,30vh,220px);height:clamp(150px,30vh,220px)}
-.focus .ring .t{font-size:52px}
-.focus .restinfo{flex:none;align-items:center;text-align:center;gap:14px}
-.focus .restlabel{font-size:17px}
-.focus .small{min-height:56px;padding:0 26px;font-size:18px}
+.fcard .rest{flex:1;min-height:0;flex-direction:column;justify-content:center;gap:14px;background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:14px 0 0}
+.fcard .ring{flex:1 1 0;min-height:110px;max-height:220px;width:auto;aspect-ratio:1}
+.fcard .ring .t{font-size:48px}
+.fcard .restinfo{flex:none;align-items:center;text-align:center;gap:12px}
+.fcard .restlabel{font-size:17px}
+.fcard .small{min-height:56px;padding:0 26px;font-size:18px}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
 .plabel.left{text-align:left}
 .totpill{font-size:13px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
@@ -181,7 +180,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .eq{stroke:var(--muted);stroke-width:5;stroke-linecap:round;fill:none;opacity:.7}
 .eqf{fill:var(--muted);opacity:.7;stroke:none}
 .db{fill:var(--ink);stroke:none}
-.band{stroke:var(--rest);stroke-width:4;fill:none;stroke-linecap:round;opacity:.8}
+.band{stroke:var(--band);stroke-width:4;fill:none;stroke-linecap:round;opacity:.8}
 </style>
 
 </head>
@@ -273,7 +272,7 @@ const View3D = (() => {
   function makeMats(){
     const m = c => new T.MeshStandardMaterial({color:col(c), roughness:0.62, metalness:0.02});
     return { skin:m('--skin'), m1:m('--m1'), m2:m('--m2'), eq:new T.MeshStandardMaterial({color:col('--eq'), roughness:0.5, metalness:0.25}),
-      db:new T.MeshStandardMaterial({color:col('--ink'), roughness:0.4, metalness:0.5}), band:new T.MeshStandardMaterial({color:col('--rest'), roughness:0.7}) };
+      db:new T.MeshStandardMaterial({color:col('--ink'), roughness:0.4, metalness:0.5}), band:new T.MeshStandardMaterial({color:col('--band'), roughness:0.7}) };
   }
   const SPH = new T.SphereGeometry(1, 28, 20), CYL = new T.CylinderGeometry(1, 1, 1, 24, 1, true);
   function capsule(r, mat){ const g = new T.Group();
@@ -548,16 +547,17 @@ function render(){
   const focus = done>0;
   app.classList.toggle('focus', focus);
   const primaryLabel = complete ? (last?'Finish session':'Next exercise') : (st.sets===1||focus?'Done':`Done · set ${done+1} of ${st.sets}`);
-  const panel = focus && !rest; // the exercise card becomes the main focus card
-  const setRow = panel ? `<div class="setrow"><div class="setnum">${complete?(st.sets===1?'Done':`All ${st.sets} sets done`):`Set ${done+1} <span>of ${st.sets}</span>`}</div>
+  // From set 2 the exercise card is the main card: name, reps, and the set counter or rest timer
+  const setRow = focus && !rest ? `<div class="setrow"><div class="setnum">${complete?(st.sets===1?'Done':`All ${st.sets} sets done`):`Set ${done+1} <span>of ${st.sets}</span>`}</div>
       ${st.sets>1?`<div class="setdots" aria-hidden="true">${Array.from({length:st.sets},(_,i)=>`<i class="${i<done?'on':''}"></i>`).join('')}</div>`:''}</div>` : '';
   const timerLabel = st.timerLabel || `Rest ${fmt(st.rest)}`;
-  const restBlock = rest ? `<div class="rest" role="timer" aria-live="off">
+  const restTimer = rest ? `<div class="rest" role="timer" aria-live="off">
       <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="7"/>
-      <circle id="rc" cx="50" cy="50" r="46" fill="none" stroke="var(--rest)" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg>
+      <circle id="rc" cx="50" cy="50" r="46" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg>
       <div class="t" id="rt">${fmt((rest.end-Date.now())/1000)}</div></div>
       <div class="restinfo"><div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}${!complete&&st.id!=='warm'?` · set ${done+1} next`:''}</div>
-      <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` :
+      <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` : '';
+  const restBlock = rest ? (focus ? '' : restTimer) :
     `<div class="actions"><button class="btn primary" id="primary">${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
 
   app.innerHTML = `
@@ -570,10 +570,10 @@ function render(){
       <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
       <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span><span><i class="k2"></i>${st.msl}</span></div></div></div>
     <div class="zone">
-    <div class="card${panel?' fcard':''}">
+    <div class="card${focus?' fcard':''}${focus&&rest?' resting':''}">
       <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
-      <div class="rx"><span class="big">${st.sets>1&&!panel?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span></div>
-      ${setRow}
+      <div class="rx"><span class="big">${st.sets>1&&!focus?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span></div>
+      ${setRow}${focus?restTimer:''}
     </div>
     ${restBlock}</div>
     <div class="scrim" id="scrim" ${tipsOpen?'':'hidden'}>
@@ -618,7 +618,7 @@ function confetti(){
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const c=document.createElement('canvas'); c.className='confetti'; document.body.appendChild(c);
   const dpr=Math.min(window.devicePixelRatio||1,2), W=innerWidth, H=innerHeight; c.width=W*dpr; c.height=H*dpr; const x=c.getContext('2d'); x.scale(dpr,dpr);
-  const cs=getComputedStyle(document.documentElement), cols=['--accent','--m1','--rest','--m2'].map(v=>cs.getPropertyValue(v).trim());
+  const cs=getComputedStyle(document.documentElement), cols=['--accent','--m1','--m2'].map(v=>cs.getPropertyValue(v).trim());
   const P=Array.from({length:140},()=>({x:W/2+(Math.random()-0.5)*60,y:H*0.35,vx:(Math.random()-0.5)*9,vy:-Math.random()*11-4,r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3,w:6+Math.random()*6,h:3+Math.random()*4,c:cols[Math.floor(Math.random()*cols.length)]}));
   const t0=performance.now();
   (function f(now){ const e=(now-t0)/1000; x.clearRect(0,0,W,H);
