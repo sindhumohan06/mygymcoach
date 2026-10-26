@@ -69,7 +69,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .name{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;letter-spacing:-0.02em;text-wrap:balance}
 .rx{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .big{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
-.chip{font-weight:700;font-size:13px;padding:4px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
 .namerow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .namerow .name{min-width:0}
 .tipsbtn{flex:none;width:44px;height:44px;margin:-6px -8px 0 0;border:0;border-radius:50%;background:transparent;color:var(--accent);display:grid;place-items:center;cursor:pointer}
@@ -107,14 +106,17 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* After the first set the demo shrinks and the done button / rest timer take over. */
 .zone{display:contents}
 .focus .stage{flex:0 0 clamp(120px,22vh,180px);min-height:0;padding:8px}
-.focus .stagefoot{display:none}
+.focus .stagefoot,.focus .tag{display:none}
 .focus .name{font-size:28px}
 .focus .zone{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
-.setpanel{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.setnum{font-family:var(--display);font-weight:700;font-size:56px;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;text-align:center}
-.setnum.sm{font-size:34px}
-.setnum span{font-size:28px;color:var(--muted)}
-.setdots{display:flex;gap:10px}
+.fcard{flex:1;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px 18px;gap:10px}
+.fcard .rx{flex:1;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
+.fcard .big{font-size:72px;line-height:1}
+.fcard .rx .slabel{font-size:17px!important}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--line)}
+.setnum{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
+.setnum span{color:var(--muted)}
+.setdots{display:flex;gap:8px}
 .setdots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--accent);box-sizing:border-box}
 .setdots i.on{background:var(--accent)}
 .focus .actions .btn{min-height:clamp(88px,16vh,128px);font-size:26px}
@@ -419,12 +421,12 @@ const View3D = (() => {
 
 const STEPS = [
   {id:'circ', mpl:'Shoulders', msl:'Upper back', group:'Warm-up', name:'Arm circles', big:'10 + 10', unit:'forwards, then backwards', tips:['Stand tall with your arms straight out to the sides.','Make small circles first, then gradually bigger ones.','10 forwards, then 10 backwards.'], sets:1, rest:0, noTimer:true, anim:'circ'},
-  {id:'pull', mpl:'Upper back', msl:'Rear shoulders', group:'Warm-up', name:'Band pull-aparts', big:'15', unit:'reps', chip:'1 small band', tips:['Hold the band at chest height with straight arms, hands shoulder-width apart.','Pull it apart until it touches your chest, squeezing your shoulder blades together.','Return slowly. Keep your shoulders down, away from your ears.'], sets:1, rest:0, noTimer:true, anim:'pull'},
+  {id:'pull', mpl:'Upper back', msl:'Rear shoulders', group:'Warm-up', name:'Band pull-aparts', big:'15', unit:'reps', tips:['Hold the band at chest height with straight arms, hands shoulder-width apart.','Pull it apart until it touches your chest, squeezing your shoulder blades together.','Return slowly. Keep your shoulders down, away from your ears.'], sets:1, rest:0, noTimer:true, anim:'pull'},
   {id:'scap', mp:['TRAPEZIUS'], ms:['UPPER_BACK'], mpl:'Lower traps', msl:'Lats', group:'Pull', name:'Scapular pulls', big:'6–8', unit:'reps', tips:['Hang with straight arms.','Pull your shoulder blades down and back, like putting them in your back pockets.','Elbows stay locked. The movement is small.','This teaches your back, not your arms, to start every pull.'], sets:3, rest:60, anim:'scap'},
-  {id:'neg', mp:['UPPER_BACK'], ms:['BICEPS','FOREARM','BACK_DELTOIDS','TRAPEZIUS'], mpl:'Lats and upper back', msl:'Biceps, forearms, rear shoulders', group:'Pull · key exercise', name:'Pull-up negatives', big:'3', unit:'reps · 3–5 sec down', chip:'No band', tips:['Start with your chin already over the bar. Step off the chair, don\'t jump up.','Lower as slowly as you can, 3–5 seconds, all the way to straight arms.','Fight the bottom half. That\'s where people drop.','Step back up on the chair for each rep.','Only use the 2 small bands if you drop in under 2 seconds.'], sets:3, rest:90, anim:'neg'},
-  {id:'chin', mp:['UPPER_BACK','BICEPS'], ms:['FOREARM','TRAPEZIUS'], mpl:'Lats and biceps', msl:'Forearms, traps', group:'Pull', name:'Banded chin-ups', big:'Max', unit:'clean reps', chip:'2 small bands', tips:['Palms facing you.','Pull your shoulders down first, then pull up.','Clean reps only. Stop when your form breaks.','At 5+ reps for all sets, switch to 1 small band.'], sets:3, rest:120, anim:'chin'},
+  {id:'neg', mp:['UPPER_BACK'], ms:['BICEPS','FOREARM','BACK_DELTOIDS','TRAPEZIUS'], mpl:'Lats and upper back', msl:'Biceps, forearms, rear shoulders', group:'Pull · key exercise', name:'Pull-up negatives', big:'3', unit:'reps · 3–5 sec down', tips:['Start with your chin already over the bar. Step off the chair, don\'t jump up.','Lower as slowly as you can, 3–5 seconds, all the way to straight arms.','Fight the bottom half. That\'s where people drop.','Step back up on the chair for each rep.','Only use the 2 small bands if you drop in under 2 seconds.'], sets:3, rest:90, anim:'neg'},
+  {id:'chin', mp:['UPPER_BACK','BICEPS'], ms:['FOREARM','TRAPEZIUS'], mpl:'Lats and biceps', msl:'Forearms, traps', group:'Pull', name:'Banded chin-ups', big:'Max', unit:'clean reps', tips:['Palms facing you.','Pull your shoulders down first, then pull up.','Clean reps only. Stop when your form breaks.','At 5+ reps for all sets, switch to 1 small band.'], sets:3, rest:120, anim:'chin'},
   {id:'row', mp:['UPPER_BACK','TRAPEZIUS'], ms:['BICEPS','BACK_DELTOIDS','FOREARM'], mpl:'Lats and mid-back', msl:'Biceps, rear shoulder', group:'Pull', name:'One-arm rows', big:'8–10', unit:'reps each side', tips:['One hand on a chair, back flat and close to parallel with the floor.','Pull the dumbbell toward your hip, not your chest.','Lower it slowly with control.','Both sides count as 1 set.','When 3 × 15 feels easy, go up a weight and start back at 8 reps.'], sets:3, rest:60, anim:'row'},
-  {id:'push', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS','ABS'], mpl:'Chest', msl:'Triceps, front shoulders, core', group:'Push', name:'Incline push-ups', big:'8–10', unit:'reps', chip:'Counter or table', tips:['Use a counter or table high enough for 8–10 good reps.','Keep your body in one straight line, head to heels.','Lower your chest to the edge, then push away.','At 3 × 12, move to a lower surface.'], sets:3, rest:60, anim:'push'},
+  {id:'push', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS','ABS'], mpl:'Chest', msl:'Triceps, front shoulders, core', group:'Push', name:'Incline push-ups', big:'8–10', unit:'reps', tips:['Use a counter or table high enough for 8–10 good reps.','Keep your body in one straight line, head to heels.','Lower your chest to the edge, then push away.','At 3 × 12, move to a lower surface.'], sets:3, rest:60, anim:'push'},
   {id:'press', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS'], mpl:'Chest', msl:'Triceps, front shoulders', group:'Push', name:'Floor press', big:'10', unit:'reps', tips:['Lie on your back with knees bent.','Lower until your elbows touch the floor.','Press straight up over your chest.','When 10 reps feels easy, go up a weight.'], sets:3, rest:60, anim:'press'},
   {id:'hang', mp:['FOREARM'], ms:['UPPER_BACK','TRAPEZIUS'], mpl:'Grip and forearms', msl:'Lats, traps', group:'Finish', name:'Dead hang', big:'Max', unit:'hold · aim 30 s+', tips:['Hang with straight arms and a firm grip.','Keep your shoulders slightly pulled down, not up by your ears.','Breathe steadily.','Aim to build up to 30 seconds or more.'], sets:2, rest:60, anim:'hang'}
 ];
@@ -546,7 +548,8 @@ function render(){
   const focus = done>0;
   app.classList.toggle('focus', focus);
   const primaryLabel = complete ? (last?'Finish session':'Next exercise') : (st.sets===1||focus?'Done':`Done · set ${done+1} of ${st.sets}`);
-  const setPanel = focus && !rest ? `<div class="setpanel"><div class="setnum${complete?' sm':''}">${complete?(st.sets===1?'Done':`All ${st.sets} sets done`):`Set ${done+1} <span>of ${st.sets}</span>`}</div>
+  const panel = focus && !rest; // the exercise card becomes the main focus card
+  const setRow = panel ? `<div class="setrow"><div class="setnum">${complete?(st.sets===1?'Done':`All ${st.sets} sets done`):`Set ${done+1} <span>of ${st.sets}</span>`}</div>
       ${st.sets>1?`<div class="setdots" aria-hidden="true">${Array.from({length:st.sets},(_,i)=>`<i class="${i<done?'on':''}"></i>`).join('')}</div>`:''}</div>` : '';
   const timerLabel = st.timerLabel || `Rest ${fmt(st.rest)}`;
   const restBlock = rest ? `<div class="rest" role="timer" aria-live="off">
@@ -566,11 +569,13 @@ function render(){
     <div class="stage"><div class="tag">${st.group}</div>
       <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
       <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span><span><i class="k2"></i>${st.msl}</span></div></div></div>
-    <div class="card">
+    <div class="zone">
+    <div class="card${panel?' fcard':''}">
       <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
-      <div class="rx"><span class="big">${st.sets>1?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span>${st.chip?`<span class="chip">${st.chip}</span>`:''}</div>
+      <div class="rx"><span class="big">${st.sets>1&&!panel?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span></div>
+      ${setRow}
     </div>
-    <div class="zone">${setPanel}${restBlock}</div>
+    ${restBlock}</div>
     <div class="scrim" id="scrim" ${tipsOpen?'':'hidden'}>
       <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheettitle">
         <div class="sheethead"><h2 id="sheettitle">${st.name}</h2><button class="iconbtn" id="closetips" aria-label="Close tips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
