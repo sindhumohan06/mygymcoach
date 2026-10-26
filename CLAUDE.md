@@ -4,14 +4,14 @@ A personal workout app for working towards a first pull-up. It's used one-handed
 
 ## Layout
 
-Everything lives in `index.html`: CSS, markup and JS, with no build step and no dependencies to install. Other files are the PWA manifest and the home-screen icons.
+A static site with no build step and no dependencies to install. Plain `<script>` tags (not modules) load in order and share top-level names, so keep that order: three.js, `figure3d.js`, `exercises.js`, `app.js`.
 
-Inside `index.html`, top to bottom:
-- **CSS**: theme tokens on `:root`, with the dark theme repeated under `prefers-color-scheme` and `[data-theme="dark"]`. Change both dark blocks together.
-- **`View3D`**: the three.js (r128, loaded from cdnjs) figure. Each animation in `E` has camera settings, keyframe poses (limbs solved with 2-bone IK) and a `muscles` map that colours body parts with `--m1` (primary) or `--m2` (secondary).
-- **`STEPS`**: one entry per exercise. Each entry has a name, the animation key `anim`, reps (`big` + `unit`), `sets`, `rest` seconds, the muscle key labels `mpl`/`msl`, `tips` (how to do it) and `mistakes` (`[mistake, fix]` pairs). The tips sheet renders both lists, so every step needs both. Keep `mpl`/`msl` in step with the animation's `muscles` map.
-- **State**: `S` is today's session, saved to localStorage under `pullup-coach-v1`. Session history lives under `pullup-coach-history`, the avatar under `pullup-coach-avatar`.
-- **`render()`**: rebuilds the whole screen as an HTML string on every change: welcome, workout or finished.
+- **`index.html`**: the page shell: meta tags, the `#app` container and the script tags.
+- **`styles.css`**: theme tokens on `:root`, with the dark theme repeated under `prefers-color-scheme` and `[data-theme="dark"]`. Change both dark blocks together.
+- **`figure3d.js`**: `View3D`, the three.js (r128, loaded from cdnjs) figure. Each animation in `E` has camera settings, keyframe poses (limbs solved with 2-bone IK) and a `muscles` map that colours body parts with `--m1` (primary) or `--m2` (secondary).
+- **`exercises.js`**: `STEPS`, the workout in order. Each exercise has a name, the animation key `anim`, reps (`big` + `unit`), `sets`, `rest` seconds, the muscle key labels `mpl`/`msl`, `tips` (how to do it) and `mistakes` (`[mistake, fix]` pairs). The tips sheet renders both lists, so every exercise needs both. Keep `mpl`/`msl` in step with the animation's `muscles` map, and keep one tip or mistake per line.
+- **`app.js`**: state and rendering. `S` is today's session, saved to localStorage under `pullup-coach-v1`; session history lives under `pullup-coach-history`, the avatar under `pullup-coach-avatar`. `render()` rebuilds the whole screen as an HTML string on every change: welcome, workout or finished.
+- **`manifest.webmanifest`** and the PNG icons: the home-screen app.
 
 ## Workout screen
 
