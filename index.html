@@ -552,7 +552,7 @@ function render(){
       <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="7"/>
       <circle id="rc" cx="50" cy="50" r="46" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg>
       <div class="t" id="rt">${fmt((rest.end-Date.now())/1000)}</div></div>
-      <div class="restinfo"><div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}${!complete&&st.id!=='warm'?` · set ${done+1} next`:''}</div>
+      <div class="restinfo">${focus&&!complete&&st.id!=='warm'?`<div class="setchip">Set ${done+1}<span>/${st.sets}</span> next</div>`:`<div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}</div>`}
       <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` : '';
   const restBlock = rest ? (focus ? '' : restTimer) :
     `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
