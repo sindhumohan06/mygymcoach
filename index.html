@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Pull-Up">
-<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F141B" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F1F1F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" href="icon-192.png?v=2">
 <link rel="manifest" href="manifest.webmanifest">
@@ -25,17 +25,17 @@ img{max-width:100%}
 <style>
 /* One-screen session app: progress strip, figure stage, exercise card, thumb-zone actions. */
 :root{
-  --bg:#EDF0F4; --surface:#FFFFFF; --ink:#16202B; --muted:#5B6776; --line:#D5DBE3;
-  --accent:#2F55D4; --accent-ink:#FFFFFF; --band:#9A5A00; --stage:#E2E7EE; --skin:#C3CCD7; --eq:#7D8794; --m1:#D3312B; --m2:#F09A8C; --mm0:#CDD4DD;
+  --bg:#F1F1F1; --surface:#FFFFFF; --ink:#111111; --muted:#666666; --line:#D9D9D9;
+  --accent:#111111; --accent-ink:#FFFFFF; --band:#9A5A00; --stage:#E5E5E5; --skin:#C8C8C8; --eq:#848484; --m1:#D3312B; --m2:#F09A8C; --mm0:#D2D2D2;
   --display:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
   --body:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
-  --accent:#86A2FF; --accent-ink:#0F141B; --band:#FFB547; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}}
+  --bg:#0D0D0D; --surface:#1B1B1B; --ink:#F2F2F2; --muted:#A3A3A3; --line:#303030;
+  --accent:#F2F2F2; --accent-ink:#0D0D0D; --band:#FFB547; --stage:#151515; --skin:#6F6F6F; --eq:#5E5E5E; --m1:#FF5A4E; --m2:#A14B42; --mm0:#313131; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0F141B; --surface:#18202A; --ink:#E7ECF2; --muted:#9AA6B5; --line:#2A3542;
-  --accent:#86A2FF; --accent-ink:#0F141B; --band:#FFB547; --stage:#141B24; --skin:#6B7888; --eq:#5D6876; --m1:#FF5A4E; --m2:#A14B42; --mm0:#2C3642; color-scheme:dark}
+  --bg:#0D0D0D; --surface:#1B1B1B; --ink:#F2F2F2; --muted:#A3A3A3; --line:#303030;
+  --accent:#F2F2F2; --accent-ink:#0D0D0D; --band:#FFB547; --stage:#151515; --skin:#6F6F6F; --eq:#5E5E5E; --m1:#FF5A4E; --m2:#A14B42; --mm0:#313131; color-scheme:dark}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent}
@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .namerow .name{min-width:0}
 .tipsbtn{flex:none;width:44px;height:44px;margin:-6px -8px 0 0;border:0;border-radius:50%;background:transparent;color:var(--accent);display:grid;place-items:center;cursor:pointer}
 .tipsbtn svg{width:26px;height:26px}
-.scrim{position:fixed;inset:0;background:rgba(10,14,20,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{width:100%;max-width:480px;background:var(--surface);color:var(--ink);border-radius:22px 22px 0 0;box-sizing:border-box;
   padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-top:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));
   max-height:80%;overflow-y:auto;animation:up .22s ease-out}
