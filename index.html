@@ -51,7 +51,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .seg{height:6px;border-radius:3px;background:var(--line)}
 .seg.done{background:var(--accent);opacity:.45}
 .seg.now{background:var(--accent)}
-.stage{flex:1 1 auto;min-height:240px;background:var(--stage);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;position:relative;padding:34px 12px 10px;box-sizing:border-box}
+.stage{flex:1 1 auto;min-height:240px;background:var(--stage);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;position:relative;padding:12px 12px 10px;box-sizing:border-box}
 .figwrap{flex:1;min-height:0;position:relative;display:grid;place-items:center}
 .c3d{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
 .c3d:active{cursor:grabbing}
@@ -64,7 +64,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .legend .k1{background:var(--m1)} .legend .k2{background:var(--m2)}
 .legend.col{gap:8px;font-size:15px}
 .sheetsec{margin-top:6px;font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.tag{position:absolute;top:12px;left:12px;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .card{display:flex;flex-direction:column;gap:8px}
 .name{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;letter-spacing:-0.02em;text-wrap:balance}
 .rx{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -106,7 +105,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* After the first set the exercise card grows (big reps or rest ring) and the demo takes what's left. */
 .zone{display:contents}
 .focus .stage{min-height:0;padding:8px}
-.focus .stagefoot,.focus .tag{display:none}
+.focus .stagefoot{display:none}
 .focus .name{font-size:28px}
 .focus .zone{display:flex;flex-direction:column;gap:14px}
 .fcard{background:var(--surface);border-radius:20px;padding:16px 18px;gap:10px}
@@ -564,7 +563,7 @@ function render(){
       <div class="progress"><div class="plabel">Exercise ${S.step+1} of ${STEPS.length}</div><div class="segs">${segs}</div></div>
       <button class="iconbtn" id="next" aria-label="Next exercise" ${last?'disabled':''}>${ICON.next}</button>
     </div>
-    <div class="stage"><div class="tag">${st.group}</div>
+    <div class="stage">
       <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
       <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span><span><i class="k2"></i>${st.msl}</span></div></div></div>
     <div class="zone">
