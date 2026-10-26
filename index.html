@@ -57,13 +57,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .c3d{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
 .c3d:active{cursor:grabbing}
 .nofig{color:var(--muted);font-size:14px;text-align:center;max-width:30ch;margin:0}
-.hint{flex:none;min-height:36px;padding:0 12px;border-radius:10px;border:0;background:var(--surface);color:var(--muted);font-family:var(--body);font-size:12px;font-weight:600;cursor:pointer}
 .stagefoot{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .legend{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;line-height:1.3;min-width:0}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:12px;height:12px;border-radius:3px;flex:none}
 .legend .k1{background:var(--m1)} .legend .k2{background:var(--m2)}
-.legend.col{gap:8px;font-size:15px}
 .sheetsec{margin:20px 0 0;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-0.01em}
 .card{display:flex;flex-direction:column;gap:8px}
 .name{margin:0;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;letter-spacing:-0.02em;text-wrap:balance}
@@ -86,10 +84,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .tips li::marker{color:var(--accent)}
 .mistakes{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .mistakes li{background:var(--bg);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:16px;line-height:1.45}
-.sets{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .unit{font-size:15px;font-weight:600;color:var(--muted)}
-.dot{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--display);font-weight:700;font-size:18px;cursor:pointer;display:grid;place-items:center}
-.dot.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
 .btn{min-height:56px;border-radius:16px;border:0;font-family:var(--display);font-weight:700;font-size:19px;cursor:pointer;padding:0 18px}
 .primary{background:var(--accent);color:var(--accent-ink)}
@@ -150,7 +145,6 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .bwd{width:44px;height:44px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:16px;color:var(--muted);box-sizing:border-box}
 .bwd.on{border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
 .bwd svg{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-.bwsub{margin-top:10px;font-size:14px;color:var(--muted)}
 .decor{flex:1;min-height:90px;position:relative}
 .decor .figwrap{position:absolute;inset:0}
 .decor .c3d{pointer-events:none;cursor:default}
@@ -160,12 +154,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .wd{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box}
 .wd.on{background:var(--accent);border-color:var(--accent)}
 .wklab{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.1;letter-spacing:-0.01em}
-.wksub{font-size:14px;color:var(--muted);margin-top:2px}
-.meta{display:flex;gap:8px;flex-wrap:wrap}
-.meta span{font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border-radius:999px;padding:5px 12px}
 .btn.big{min-height:64px;font-size:22px}
-.grow{flex:1}
-.fine{margin:-4px 0 0;text-align:center;font-size:13px;color:var(--muted)}
 .hellorow{display:flex;align-items:center;gap:14px}
 .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
 .avpick{display:block;cursor:pointer;flex:none;border-radius:50%}
@@ -181,10 +170,6 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @keyframes tick{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion: reduce){.badge-tick{animation:none;stroke-dashoffset:0}}
 .confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
-.eq{stroke:var(--muted);stroke-width:5;stroke-linecap:round;fill:none;opacity:.7}
-.eqf{fill:var(--muted);opacity:.7;stroke:none}
-.db{fill:var(--ink);stroke:none}
-.band{stroke:var(--band);stroke-width:4;fill:none;stroke-linecap:round;opacity:.8}
 </style>
 
 </head>
@@ -244,13 +229,6 @@ const View3D = (() => {
   const pressTop = {...pressBot, LH:[-0.12,0.66,0.2], RH:[-0.12,0.66,-0.2]};
   E.press = { cam:{az:8, el:30, dist:2.7, ty:0.3, tx:0.2}, floorOnly:true, keys:[0,1,1.4,2.6], poses:[pressBot, pressTop], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2'}};
 
-  const walk = (sw, lift) => { // sw: -1..1 which leg forward
-    const y = 0.08, base = 1.04 + (lift ? 0.02 : 0);
-    return { lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0,base,0], N:[0.02*0,base+0.5,0],
-      LF:[-0.28*sw, y + (lift && sw===0 ? 0 : 0) + (lift==='L'?0.12:0) + 0.06, -0.1],
-      RF:[0.28*sw, y + (lift==='R'?0.12:0) + 0.06, 0.1],
-      LH:[0.18*sw, 0.86, -0.22], RH:[-0.18*sw, 0.86, 0.22],
-      poles:{LE:[1,0,-0.2], RE:[1,0,0.2], LK:[-1,0,0], RK:[-1,0,0]} }; };
   const stand = (LH, RH) => ({ lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0,0.96,0], N:[0,1.46,0],
     LF:[0,0.06,-0.11], RF:[0,0.06,0.11], LH, RH, poles:{LE:[0,-1,0.2], RE:[0,-1,-0.2], LK:[-1,0,0], RK:[-1,0,0]} });
   E.circ = (() => { const R = 0.09, poses = [];
@@ -425,13 +403,13 @@ const View3D = (() => {
 const STEPS = [
   {id:'circ', mpl:'Shoulders', msl:'Upper back', name:'Arm circles', big:'10 + 10', unit:'forwards, then backwards', tips:['Stand tall with your arms straight out to the sides.','Make small circles first, then gradually bigger ones.','10 forwards, then 10 backwards.'], mistakes:[['Shrugging your shoulders up', 'Keep your shoulders down and relaxed, neck long.'], ['Going big straight away', 'Start with small circles and widen them gradually. Stop short of any pinch.'], ['Letting your arms droop or bend', 'Keep your arms straight and level with your shoulders.']], sets:1, rest:0, noTimer:true, anim:'circ'},
   {id:'pull', mpl:'Upper back', msl:'Rear shoulders', name:'Band pull-aparts', big:'15', unit:'reps', tips:['Hold the band at chest height with straight arms, hands shoulder-width apart.','Pull it apart until it touches your chest, squeezing your shoulder blades together.','Return slowly. Keep your shoulders down, away from your ears.'], mistakes:[['Shrugging towards your ears', 'Keep your shoulders down and squeeze your shoulder blades together and down.'], ['Bending your elbows', 'Keep your arms straight. Bent elbows turn it into a row and take the work off your upper back.'], ['Arching your lower back to finish the rep', 'Brace your abs and keep your ribs down. If you can\'t, grip the band wider or use a lighter one.'], ['Letting the band snap back', 'Control the return. Take about 2 seconds to bring your hands back together.']], sets:1, rest:0, noTimer:true, anim:'pull'},
-  {id:'scap', mp:['TRAPEZIUS'], ms:['UPPER_BACK'], mpl:'Lower traps', msl:'Lats', name:'Scapular pulls', big:'6–8', unit:'reps', tips:['Hang with straight arms.','Pull your shoulder blades down and back, like putting them in your back pockets.','Elbows stay locked. The movement is small.','This teaches your back, not your arms, to start every pull.'], mistakes:[['Bending your elbows', 'Your arms stay straight the whole time. Only your shoulder blades move.'], ['Shrugging up instead of pulling down', 'Think "shoulders away from ears". Your chest lifts slightly as you pull down.'], ['Swinging or kicking', 'Keep your legs still and pause for a second at the top of each rep.']], sets:3, rest:60, anim:'scap'},
-  {id:'neg', mp:['UPPER_BACK'], ms:['BICEPS','FOREARM','BACK_DELTOIDS','TRAPEZIUS'], mpl:'Lats and upper back', msl:'Biceps, forearms, rear shoulders', name:'Pull-up negatives', big:'3', unit:'reps · 3–5 sec down', tips:['Start with your chin already over the bar. Step off the chair, don\'t jump up.','Lower as slowly as you can, 3–5 seconds, all the way to straight arms.','Fight the bottom half. That\'s where people drop.','Step back up on the chair for each rep.','Only use the 2 small bands if you drop in under 2 seconds.'], mistakes:[['Dropping through the bottom half', 'Count the seconds out loud and fight all the way down. If you drop in under 2 seconds, add the bands.'], ['Stopping before your arms are straight', 'Lower all the way to a full hang. The bottom is where you build the strength to start a pull-up.'], ['Jumping up to the top', 'Step up from the chair so you start each rep controlled, chin already over the bar.'], ['Kicking or swinging your legs', 'Keep your legs together and slightly in front of you, with your abs tight.']], sets:3, rest:90, anim:'neg'},
-  {id:'chin', mp:['UPPER_BACK','BICEPS'], ms:['FOREARM','TRAPEZIUS'], mpl:'Lats and biceps', msl:'Forearms, traps', name:'Banded chin-ups', big:'Max', unit:'clean reps', tips:['Palms facing you.','Pull your shoulders down first, then pull up.','Clean reps only. Stop when your form breaks.','At 5+ reps for all sets, switch to 1 small band.'], mistakes:[['Pulling with just your arms', 'Start each rep by pulling your shoulders down, then drive your elbows towards your ribs.'], ['Half reps', 'Go from straight arms at the bottom to chin over the bar at the top. Fewer full reps beat more half ones.'], ['Swinging or kicking', 'Squeeze your glutes and keep your legs together so your body stays still.'], ['Letting the band throw you down', 'Lower yourself under control instead of dropping.']], sets:3, rest:120, anim:'chin'},
-  {id:'row', mp:['UPPER_BACK','TRAPEZIUS'], ms:['BICEPS','BACK_DELTOIDS','FOREARM'], mpl:'Lats and mid-back', msl:'Biceps, rear shoulder', name:'One-arm rows', big:'8–10', unit:'reps each side', tips:['One hand on a chair, back flat and close to parallel with the floor.','Pull the dumbbell toward your hip, not your chest.','Lower it slowly with control.','Both sides count as 1 set.','When 3 × 15 feels easy, go up a weight and start back at 8 reps.'], mistakes:[['Rounding your lower back', 'Hinge at your hips with a flat back, chest up, eyes on the floor just ahead. If you can\'t hold it flat, rest your knee on the chair too, on the same side as the hand that\'s on the chair. That takes most of the load off your lower back.'], ['Twisting your torso to lift the weight', 'Keep your hips and shoulders square to the floor. If you have to twist to get it up, the weight is too heavy.'], ['Standing too upright or too far from the chair', 'Put your hand right under your shoulder, feet wide and knees soft, so your back isn\'t holding you up.'], ['Yanking the weight up', 'Pull smoothly, pause at the top, and take 2 seconds to lower it.'], ['Pulling towards your chest', 'Pull towards your hip with your elbow close to your side.']], sets:3, rest:60, anim:'row'},
-  {id:'push', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS','ABS'], mpl:'Chest', msl:'Triceps, front shoulders, core', name:'Incline push-ups', big:'8–10', unit:'reps', tips:['Use a counter or table high enough for 8–10 good reps.','Keep your body in one straight line, head to heels.','Lower your chest to the edge, then push away.','At 3 × 12, move to a lower surface.'], mistakes:[['Hips sagging', 'Squeeze your glutes and brace your abs to keep one straight line from head to heels.'], ['Hips piking up', 'Lower your hips into the same straight line. Your chest, not your hips, should reach the edge first.'], ['Elbows flaring straight out', 'Tuck your elbows to about 45° from your body, hands just outside your shoulders.'], ['Half reps or dropping your head', 'Bring your chest to the edge with your neck in line with your body.']], sets:3, rest:60, anim:'push'},
-  {id:'press', mp:['CHEST'], ms:['TRICEPS','FRONT_DELTOIDS'], mpl:'Chest', msl:'Triceps, front shoulders', name:'Floor press', big:'10', unit:'reps', tips:['Lie on your back with knees bent.','Lower until your elbows touch the floor.','Press straight up over your chest.','When 10 reps feels easy, go up a weight.'], mistakes:[['Elbows flaring out wide', 'Keep your elbows about 45° from your body. It\'s easier on your shoulders.'], ['Bouncing your elbows off the floor', 'Touch down softly and pause for a moment before you press.'], ['Wrists bent back', 'Stack your wrists over your elbows, knuckles pointing to the ceiling.'], ['Weights drifting towards your face', 'Press up over your chest, not over your head.']], sets:3, rest:60, anim:'press'},
-  {id:'hang', mp:['FOREARM'], ms:['UPPER_BACK','TRAPEZIUS'], mpl:'Grip and forearms', msl:'Lats, traps', name:'Dead hang', big:'Max', unit:'hold · aim 30 s+', tips:['Hang with straight arms and a firm grip.','Keep your shoulders slightly pulled down, not up by your ears.','Breathe steadily.','Aim to build up to 30 seconds or more.'], mistakes:[['Shoulders up by your ears', 'Pull your shoulders slightly down so you\'re hanging actively, not sinking into the joint.'], ['Swinging', 'Get on the bar from the chair and keep your legs together and still.'], ['Holding your breath', 'Breathe slowly and steadily the whole time.'], ['Thumb off the bar', 'Wrap your thumb around the bar for a stronger, safer grip.']], sets:2, rest:60, anim:'hang'}
+  {id:'scap', mpl:'Lower traps', msl:'Lats', name:'Scapular pulls', big:'6–8', unit:'reps', tips:['Hang with straight arms.','Pull your shoulder blades down and back, like putting them in your back pockets.','Elbows stay locked. The movement is small.','This teaches your back, not your arms, to start every pull.'], mistakes:[['Bending your elbows', 'Your arms stay straight the whole time. Only your shoulder blades move.'], ['Shrugging up instead of pulling down', 'Think "shoulders away from ears". Your chest lifts slightly as you pull down.'], ['Swinging or kicking', 'Keep your legs still and pause for a second at the top of each rep.']], sets:3, rest:60, anim:'scap'},
+  {id:'neg', mpl:'Lats and upper back', msl:'Biceps, forearms, rear shoulders', name:'Pull-up negatives', big:'3', unit:'reps · 3–5 sec down', tips:['Start with your chin already over the bar. Step off the chair, don\'t jump up.','Lower as slowly as you can, 3–5 seconds, all the way to straight arms.','Fight the bottom half. That\'s where people drop.','Step back up on the chair for each rep.','Only use the 2 small bands if you drop in under 2 seconds.'], mistakes:[['Dropping through the bottom half', 'Count the seconds out loud and fight all the way down. If you drop in under 2 seconds, add the bands.'], ['Stopping before your arms are straight', 'Lower all the way to a full hang. The bottom is where you build the strength to start a pull-up.'], ['Jumping up to the top', 'Step up from the chair so you start each rep controlled, chin already over the bar.'], ['Kicking or swinging your legs', 'Keep your legs together and slightly in front of you, with your abs tight.']], sets:3, rest:90, anim:'neg'},
+  {id:'chin', mpl:'Lats and biceps', msl:'Forearms, traps', name:'Banded chin-ups', big:'Max', unit:'clean reps', tips:['Palms facing you.','Pull your shoulders down first, then pull up.','Clean reps only. Stop when your form breaks.','At 5+ reps for all sets, switch to 1 small band.'], mistakes:[['Pulling with just your arms', 'Start each rep by pulling your shoulders down, then drive your elbows towards your ribs.'], ['Half reps', 'Go from straight arms at the bottom to chin over the bar at the top. Fewer full reps beat more half ones.'], ['Swinging or kicking', 'Squeeze your glutes and keep your legs together so your body stays still.'], ['Letting the band throw you down', 'Lower yourself under control instead of dropping.']], sets:3, rest:120, anim:'chin'},
+  {id:'row', mpl:'Lats and mid-back', msl:'Biceps, rear shoulder', name:'One-arm rows', big:'8–10', unit:'reps each side', tips:['One hand on a chair, back flat and close to parallel with the floor.','Pull the dumbbell toward your hip, not your chest.','Lower it slowly with control.','Both sides count as 1 set.','When 3 × 15 feels easy, go up a weight and start back at 8 reps.'], mistakes:[['Rounding your lower back', 'Hinge at your hips with a flat back, chest up, eyes on the floor just ahead. If you can\'t hold it flat, rest your knee on the chair too, on the same side as the hand that\'s on the chair. That takes most of the load off your lower back.'], ['Twisting your torso to lift the weight', 'Keep your hips and shoulders square to the floor. If you have to twist to get it up, the weight is too heavy.'], ['Standing too upright or too far from the chair', 'Put your hand right under your shoulder, feet wide and knees soft, so your back isn\'t holding you up.'], ['Yanking the weight up', 'Pull smoothly, pause at the top, and take 2 seconds to lower it.'], ['Pulling towards your chest', 'Pull towards your hip with your elbow close to your side.']], sets:3, rest:60, anim:'row'},
+  {id:'push', mpl:'Chest', msl:'Triceps, front shoulders, core', name:'Incline push-ups', big:'8–10', unit:'reps', tips:['Use a counter or table high enough for 8–10 good reps.','Keep your body in one straight line, head to heels.','Lower your chest to the edge, then push away.','At 3 × 12, move to a lower surface.'], mistakes:[['Hips sagging', 'Squeeze your glutes and brace your abs to keep one straight line from head to heels.'], ['Hips piking up', 'Lower your hips into the same straight line. Your chest, not your hips, should reach the edge first.'], ['Elbows flaring straight out', 'Tuck your elbows to about 45° from your body, hands just outside your shoulders.'], ['Half reps or dropping your head', 'Bring your chest to the edge with your neck in line with your body.']], sets:3, rest:60, anim:'push'},
+  {id:'press', mpl:'Chest', msl:'Triceps, front shoulders', name:'Floor press', big:'10', unit:'reps', tips:['Lie on your back with knees bent.','Lower until your elbows touch the floor.','Press straight up over your chest.','When 10 reps feels easy, go up a weight.'], mistakes:[['Elbows flaring out wide', 'Keep your elbows about 45° from your body. It\'s easier on your shoulders.'], ['Bouncing your elbows off the floor', 'Touch down softly and pause for a moment before you press.'], ['Wrists bent back', 'Stack your wrists over your elbows, knuckles pointing to the ceiling.'], ['Weights drifting towards your face', 'Press up over your chest, not over your head.']], sets:3, rest:60, anim:'press'},
+  {id:'hang', mpl:'Grip and forearms', msl:'Lats, traps', name:'Dead hang', big:'Max', unit:'hold · aim 30 s+', tips:['Hang with straight arms and a firm grip.','Keep your shoulders slightly pulled down, not up by your ears.','Breathe steadily.','Aim to build up to 30 seconds or more.'], mistakes:[['Shoulders up by your ears', 'Pull your shoulders slightly down so you\'re hanging actively, not sinking into the joint.'], ['Swinging', 'Get on the bar from the chair and keep your legs together and still.'], ['Holding your breath', 'Breathe slowly and steadily the whole time.'], ['Thumb off the bar', 'Wrap your thumb around the bar for a stronger, safer grip.']], sets:2, rest:60, anim:'hang'}
 ];
 
 const KEY='pullup-coach-v1';
@@ -555,15 +533,14 @@ function render(){
   const primaryLabel = complete ? (last?'Finish session':'Next exercise') : 'Done';
   // Set 1 shows a compact exercise card; from set 2 the full card takes over: name, set chip and reps, or the rest timer
   const setChip = !rest && (focus || st.sets>1) ? chip(complete?(st.sets===1?'Done':'All sets done'):`Set ${frac(done+1,st.sets)}`) : '';
-  const timerLabel = st.timerLabel || `Rest ${fmt(st.rest)}`;
   const restTimer = rest ? `<div class="rest" role="timer" aria-live="off">
       <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="7"/>
       <circle id="rc" cx="50" cy="50" r="46" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="0"/></svg>
       <div class="t" id="rt">${fmt((rest.end-Date.now())/1000)}</div></div>
-      <div class="restinfo">${focus&&!complete&&st.id!=='warm'?chip(`Set ${frac(done+1,st.sets)} next`):`<div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}</div>`}
-      <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` : '';
+      <div class="restinfo">${focus&&!complete?chip(`Set ${frac(done+1,st.sets)} next`):'<div class="restlabel">Resting</div>'}
+      <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">Skip</button></div></div></div>` : '';
   const restBlock = rest ? (focus ? '' : restTimer) :
-    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
+    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${fmt(st.rest)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
 
   app.innerHTML = `
     <div class="top">
@@ -613,11 +590,6 @@ function render(){
       go(S.step+1); if(!st.noTimer) startRest(st.rest);
     };
   }
-}
-function nextDay(){
-  const d=new Date().getDay(); // 0 Sun
-  const map={0:'Monday',1:'Wednesday',2:'Wednesday',3:'Friday',4:'Friday',5:'Monday',6:'Monday'};
-  return map[d];
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape' && tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; } });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
