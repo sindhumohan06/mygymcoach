@@ -41,7 +41,7 @@ const View3D = (() => {
     return { lat:[0,0,1], toe:nrm([-0.6,-1,0]), sh:-0.04, P:[Fx-0.85*c, Fy+0.85*s-0.06, 0], N:[Fx-1.36*c, Fy+1.36*s-0.06, 0],
       LH:[0,0.78,-0.24], RH:[0,0.78,0.24], LF:[Fx,Fy,-0.11], RF:[Fx,Fy,0.11],
       poles:{LE:[1,0.6,-1], RE:[1,0.6,1], LK:[1,1,0], RK:[1,1,0]} }; };
-  E.push = { cam:{az:22, el:14, dist:3.0, ty:0.75, tx:0.25}, table:true, keys:[0,1.1,1.4,2.5], poses:[pushPose(67), pushPose(47)], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2', abs:'m2'}};
+  E.push = { cam:{az:-25, el:0, dist:3.0, ty:0.75, tx:0.25}, table:true, keys:[0,1.1,1.4,2.5], poses:[pushPose(67), pushPose(47)], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2', abs:'m2'}};
 
   const pressBot = { lat:[0,0,-1], toe:[1,0,0], sh:-0.04, P:[0.36,0.12,0], N:[-0.14,0.12,0],
     LH:[-0.08,0.36,0.36], RH:[-0.08,0.36,-0.36], LF:[0.76,0.07,0.15], RF:[0.76,0.07,-0.15],
@@ -56,7 +56,7 @@ const View3D = (() => {
     const keys = [0], seq = [0]; let t = 0; const add = i => { t += 0.15; keys.push(+t.toFixed(2)); seq.push(i); };
     for (let l = 0; l < 2; l++) for (let k = 1; k <= 8; k++) add(k % 8);
     for (let l = 0; l < 2; l++) for (let k = 7; k >= 0; k--) add(k);
-    return { cam:{az:-55, el:8, dist:3.2, ty:0.95}, keys, poses, seq, muscles:{delt:'m1', lats:'m2'} }; })();
+    return { cam:{az:145, el:8, dist:3.2, ty:0.95}, keys, poses, seq, muscles:{delt:'m1', lats:'m2'} }; })();
   E.pull = { cam:{az:135, el:12, dist:3.2, ty:1.0}, pullband:true, keys:[0,0.9,1.3,2.2,2.6],
     poses:[stand([-0.53,1.37,-0.2],[-0.53,1.37,0.2]), stand([-0.12,1.37,-0.69],[-0.12,1.37,0.69])], seq:[0,1,1,0,0], muscles:{lats:'m1', delt:'m2'} };
 
