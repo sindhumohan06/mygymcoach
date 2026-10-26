@@ -104,10 +104,33 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .restbtns{display:flex;gap:8px;flex-wrap:wrap}
 .small{min-height:44px;padding:0 16px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:16px;cursor:pointer;border:2px solid var(--rest);background:transparent;color:var(--rest)}
 .small.fill{background:var(--rest);color:var(--surface)}
+/* After the first set the demo shrinks and the done button / rest timer take over. */
+.zone{display:contents}
+.focus .stage{flex:0 0 clamp(120px,22vh,180px);min-height:0;padding:8px}
+.focus .stagefoot{display:none}
+.focus .name{font-size:28px}
+.focus .zone{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
+.setpanel{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.setnum{font-family:var(--display);font-weight:700;font-size:56px;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;text-align:center}
+.setnum.sm{font-size:34px}
+.setnum span{font-size:28px;color:var(--muted)}
+.setdots{display:flex;gap:10px}
+.setdots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--accent);box-sizing:border-box}
+.setdots i.on{background:var(--accent)}
+.focus .actions .btn{min-height:clamp(88px,16vh,128px);font-size:26px}
+.focus .timerbtn{width:72px;height:auto}
+.focus .timerbtn svg{width:32px;height:32px}
+.focus .rest{flex:1;min-height:0;flex-direction:column;justify-content:center;gap:18px;padding:20px}
+.focus .ring{width:clamp(150px,30vh,220px);height:clamp(150px,30vh,220px)}
+.focus .ring .t{font-size:52px}
+.focus .restinfo{flex:none;align-items:center;text-align:center;gap:14px}
+.focus .restlabel{font-size:17px}
+.focus .small{min-height:56px;padding:0 26px;font-size:18px}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
 .plabel.left{text-align:left}
 .totpill{font-size:13px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
 .finhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.finbody{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding-bottom:8%}
 .hero{margin:0;font-family:var(--display);font-weight:700;font-size:48px;line-height:.95;letter-spacing:-0.03em;text-wrap:balance}
 .hl{color:var(--accent)}
 .hello{margin:0;font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;letter-spacing:-0.02em}
@@ -484,16 +507,19 @@ function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S
 
 function render(){
   const app=document.getElementById('app');
+  app.classList.remove('focus');
   if(S.finished){
     const n = history.length, wk = Math.min(weekCount(),3);
     app.innerHTML = `<div class="screen finish">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>
         <button class="iconbtn" id="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button></div>
+      <div class="finbody">
       <div class="champ">${avatarHTML('avatar big')}<span class="champtick" aria-hidden="true"><svg viewBox="0 0 120 120"><path d="M34 62l17 17 36-40" class="badge-tick"/></svg></span></div>
       <h1 class="hero">Session<br>done!</h1>
       <p class="lede">One step closer to your first pull-up.</p>
       <div class="weekcard"><div class="weekdots">${[0,1,2].map(i=>`<span class="wd ${i<wk?'on':''}"></span>`).join('')}</div>
         <div class="wklab">${wk} of 3 this week</div></div>
+      </div>
 </div>`;
     document.getElementById('home').onclick=goHome; bindAvatar();
     return;
@@ -517,7 +543,11 @@ function render(){
   }
   const st=STEPS[S.step], done=S.done[st.id]||0, complete=done>=st.sets, last=S.step===STEPS.length-1;
   const segs=STEPS.map((x,i)=>`<div class="seg ${i<S.step?'done':''} ${i===S.step?'now':''}"></div>`).join('');
-  const primaryLabel = complete ? (last?'Finish session':'Next exercise') : (st.sets===1?'Done':`Done · set ${done+1} of ${st.sets}`);
+  const focus = done>0;
+  app.classList.toggle('focus', focus);
+  const primaryLabel = complete ? (last?'Finish session':'Next exercise') : (st.sets===1||focus?'Done':`Done · set ${done+1} of ${st.sets}`);
+  const setPanel = focus && !rest ? `<div class="setpanel"><div class="setnum${complete?' sm':''}">${complete?(st.sets===1?'Done':`All ${st.sets} sets done`):`Set ${done+1} <span>of ${st.sets}</span>`}</div>
+      ${st.sets>1?`<div class="setdots" aria-hidden="true">${Array.from({length:st.sets},(_,i)=>`<i class="${i<done?'on':''}"></i>`).join('')}</div>`:''}</div>` : '';
   const timerLabel = st.timerLabel || `Rest ${fmt(st.rest)}`;
   const restBlock = rest ? `<div class="rest" role="timer" aria-live="off">
       <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="var(--line)" stroke-width="7"/>
@@ -540,7 +570,7 @@ function render(){
       <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
       <div class="rx"><span class="big">${st.sets>1?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span>${st.chip?`<span class="chip">${st.chip}</span>`:''}</div>
     </div>
-    ${restBlock}
+    <div class="zone">${setPanel}${restBlock}</div>
     <div class="scrim" id="scrim" ${tipsOpen?'':'hidden'}>
       <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheettitle">
         <div class="sheethead"><h2 id="sheettitle">${st.name}</h2><button class="iconbtn" id="closetips" aria-label="Close tips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
