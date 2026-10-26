@@ -32,10 +32,11 @@ function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; c
 function scheduleHome(){ clearTimeout(homeTimer); if(!S.finished) return; const left = FINISH_MS - (Date.now()-(S.finishedAt||0));
   homeTimer = setTimeout(goHome, Math.max(0,left)); }
 function goHome(){ clearTimeout(homeTimer); S=fresh(); save(); render(); }
+function leaveWorkout(){ leaveOpen=false; rest=null; clearInterval(tick); goHome(); }
 function startWorkout(){ unlockAudio(); keepAwake(); S=fresh(); S.view='workout'; save(); render(); }
 
 let rest = null; // {end,total}
-let tipsOpen = false;
+let tipsOpen = false, leaveOpen = false;
 let tick = null, audio = null, wake = null;
 
 const frac = (n,of) => `<span aria-hidden="true">${n}<span class="of">/${of}</span></span><span class="sr">${n} of ${of}</span>`;
@@ -130,7 +131,7 @@ function render(){
 
   app.innerHTML = `
     <div class="top">
-      <button class="iconbtn" id="prev" aria-label="Previous exercise" ${S.step===0?'disabled':''}>${ICON.prev}</button>
+      <button class="iconbtn" id="prev" aria-label="${S.step===0?'Leave workout':'Previous exercise'}">${ICON.prev}</button>
       <div class="progress"><div class="plabel count"><span class="sr">Exercise </span>${frac(S.step+1,STEPS.length)}</div><div class="segs">${segs}</div></div>
       <button class="iconbtn" id="next" aria-label="Next exercise" ${last?'disabled':''}>${ICON.next}</button>
     </div>
@@ -152,6 +153,13 @@ function render(){
         <h3 class="sheetsec">Common mistakes</h3>
         <ul class="mistakes">${st.mistakes.map(([m,f])=>`<li><b>${m}<span class="sr">.</span></b> ${f}</li>`).join('')}</ul>
       </div>
+    </div>
+    <div class="scrim" id="leavescrim" ${leaveOpen?'':'hidden'}>
+      <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="leavetitle" aria-describedby="leavetext">
+        <h2 class="leavetitle" id="leavetitle">Leave workout?</h2>
+        <p class="leavetext" id="leavetext">Today's sets won't be saved.</p>
+        <div class="leavebtns"><button class="btn quiet" id="stay">Keep going</button><button class="btn primary" id="leave">Leave</button></div>
+      </div>
     </div>`;
   if(View3D){ View3D.mount(document.getElementById('figwrap'), st.anim); }
   document.getElementById('tipsbtn').onclick=()=>{ tipsOpen=true; document.getElementById('scrim').hidden=false; document.getElementById('closetips').focus(); };
@@ -159,7 +167,16 @@ function render(){
   document.getElementById('closetips').onclick=closeTips;
   document.getElementById('scrim').onclick=e=>{ if(e.target.id==='scrim') closeTips(); };
 
-  document.getElementById('prev').onclick=()=>go(S.step-1);
+  // On the first exercise the back arrow leaves the workout; ask first once a set is logged
+  const closeLeave=()=>{ leaveOpen=false; document.getElementById('leavescrim').hidden=true; document.getElementById('prev').focus(); };
+  document.getElementById('prev').onclick=()=>{
+    if(S.step>0) return go(S.step-1);
+    if(!Object.keys(S.done).length && !rest) return leaveWorkout();
+    leaveOpen=true; document.getElementById('leavescrim').hidden=false; document.getElementById('stay').focus();
+  };
+  document.getElementById('stay').onclick=closeLeave;
+  document.getElementById('leave').onclick=leaveWorkout;
+  document.getElementById('leavescrim').onclick=e=>{ if(e.target.id==='leavescrim') closeLeave(); };
   document.getElementById('next').onclick=()=>go(S.step+1);
   if(rest){
     document.getElementById('plus').onclick=()=>{ rest.end+=15000; rest.total+=15; updateRest(); };
@@ -177,7 +194,9 @@ function render(){
     };
   }
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape' && tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; } });
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  if(tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; }
+  if(leaveOpen){ leaveOpen=false; const sc=document.getElementById('leavescrim'); if(sc) sc.hidden=true; } });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>View3D&&View3D.rebuild()); new MutationObserver(()=>View3D&&View3D.rebuild()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
 function confetti(){
