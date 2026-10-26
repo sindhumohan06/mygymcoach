@@ -20,7 +20,7 @@ const View3D = (() => {
   const wideTop = {...hangBase, P:[0,1.64,-0.12], N:[0,2.14,-0.08], LH:[-0.32,BAR_Y,0], RH:[0.32,BAR_Y,0], LF:[-0.1,0.95,-0.2], RF:[0.1,0.95,-0.2], poles:{LE:[-1,-0.4,-0.3], RE:[1,-0.4,-0.3], LK:[0,0,1], RK:[0,0,1]}};
   const wideBot = {...hangBase, P:[0,1.2,0], N:[0,1.7,0], LH:[-0.32,BAR_Y,0], RH:[0.32,BAR_Y,0], LF:[-0.09,0.38,-0.06], RF:[0.09,0.38,-0.06], poles:{LE:[-1,-0.2,-0.3], RE:[1,-0.2,-0.3], LK:[0,0,1], RK:[0,0,1]}};
   E.neg = { cam:{az:215, el:10, dist:3.6, ty:1.4}, bar:true, chair:true,
-    keys:[0,0.7,4.9,5.6,6.6], poses:[wideTop, wideBot], seq:[0,0,1,1,0], muscles:{lats:'m1', ua:'m2', fa:'m2'}};
+    keys:[0,0.7,4.9,5.6,6.6], poses:[wideTop, wideBot], seq:[0,0,1,1,0], muscles:{lats:'m1', ua:'m2', fa:'m2', delt:'m2'}};
 
   E.pullup = { cam:{az:32, el:8, dist:3.6, ty:1.5}, bar:true, keys:[0,1.2,1.7,3.2,3.7], poses:[wideTop, wideBot], seq:[1,0,0,1,1], muscles:{lats:'m1', ua:'m2', fa:'m2'}};
   const midGrip = {LH:[-0.25,BAR_Y,0], RH:[0.25,BAR_Y,0]};

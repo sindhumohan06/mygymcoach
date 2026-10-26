@@ -1,6 +1,6 @@
 // The workout, in order. Each exercise: id, name, anim (3D animation in figure3d.js),
 // reps (big + unit), sets, rest seconds, noTimer (no rest timer), muscle key labels
-// (mpl primary, msl secondary), tips (how to do it) and mistakes ([mistake, fix]).
+// (mpl primary, msl optional secondary), tips (how to do it) and mistakes ([mistake, fix]).
 const STEPS = [
   {
     id:'circ', name:'Arm circles', anim:'circ',
@@ -36,7 +36,7 @@ const STEPS = [
   {
     id:'scap', name:'Scapular pulls', anim:'scap',
     big:'6–8', unit:'reps', sets:3, rest:60,
-    mpl:'Lower traps', msl:'Lats',
+    mpl:'Lower traps and lats',
     tips:[
       'Hang with straight arms.',
       'Pull your shoulder blades down and back, like putting them in your back pockets.',
@@ -70,7 +70,7 @@ const STEPS = [
   {
     id:'chin', name:'Banded chin-ups', anim:'chin',
     big:'Max', unit:'clean reps', sets:3, rest:120,
-    mpl:'Lats and biceps', msl:'Forearms, traps',
+    mpl:'Lats and biceps', msl:'Forearms',
     tips:[
       'Palms facing you.',
       'Pull your shoulders down first, then pull up.',

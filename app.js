@@ -136,7 +136,7 @@ function render(){
     </div>
     <div class="stage">
       <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
-      <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span><span><i class="k2"></i>${st.msl}</span></div></div></div>
+      <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span>${st.msl?`<span><i class="k2"></i>${st.msl}</span>`:''}</div></div></div>
     <div class="zone">
     <div class="card${focus?' fcard':' ccard'}${focus&&rest?' resting':''}">
       <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
