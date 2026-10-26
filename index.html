@@ -84,7 +84,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 .tips{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.45}
 .tips li::marker{color:var(--accent)}
 .sets{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.slabel{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.unit{font-size:15px;font-weight:600;color:var(--muted)}
 .dot{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--display);font-weight:700;font-size:18px;cursor:pointer;display:grid;place-items:center}
 .dot.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
@@ -111,7 +111,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .fcard{flex:1;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px 18px;gap:10px}
 .fcard:not(.resting) .rx{flex:1;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
 .fcard:not(.resting) .big{font-size:72px;line-height:1}
-.fcard:not(.resting) .rx .slabel{font-size:17px!important}
+.fcard:not(.resting) .unit{font-size:17px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid var(--line)}
 .setnum{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
 .setnum span{color:var(--muted)}
@@ -122,7 +122,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .focus .timerbtn{width:72px;height:auto}
 .focus .timerbtn svg{width:32px;height:32px}
 .fcard .rest{flex:1;min-height:0;flex-direction:column;justify-content:center;gap:14px;background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:14px 0 0}
-.fcard .ring{flex:1 1 0;min-height:110px;max-height:220px;width:auto;aspect-ratio:1}
+.fcard .ring{width:clamp(120px,26vh,210px);height:clamp(120px,26vh,210px);align-self:center}
 .fcard .ring .t{font-size:48px}
 .fcard .restinfo{flex:none;align-items:center;text-align:center;gap:12px}
 .fcard .restlabel{font-size:17px}
@@ -558,7 +558,7 @@ function render(){
       <div class="restinfo"><div class="restlabel">${st.id==='warm'?'Warm-up':'Resting'}${!complete&&st.id!=='warm'?` · set ${done+1} next`:''}</div>
       <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">${st.id==='warm'?'Stop':'Skip'}</button></div></div></div>` : '';
   const restBlock = rest ? (focus ? '' : restTimer) :
-    `<div class="actions"><button class="btn primary" id="primary">${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
+    `<div class="actions"><button class="btn primary" id="primary"${focus&&!complete?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${timerLabel}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
 
   app.innerHTML = `
     <div class="top">
@@ -572,7 +572,7 @@ function render(){
     <div class="zone">
     <div class="card${focus?' fcard':''}${focus&&rest?' resting':''}">
       <div class="namerow"><h1 class="name">${st.name}</h1><button class="tipsbtn" id="tipsbtn" aria-label="Form tips" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
-      <div class="rx"><span class="big">${st.sets>1&&!focus?`${st.sets} × `:''}${st.big}</span><span class="slabel" style="text-transform:none;letter-spacing:0;font-size:15px">${st.unit}</span></div>
+      <div class="rx"><span class="big">${st.sets>1&&!focus?`${st.sets} × `:''}${st.big}</span><span class="unit">${st.unit}</span></div>
       ${setRow}${focus?restTimer:''}
     </div>
     ${restBlock}</div>
