@@ -25,21 +25,23 @@ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} 
 let history = [];
 try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
 function logSession(){ if(!history.includes(today())) history.push(today()); try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
-function weekCount(){ const d=new Date(); const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)); const start=ymd(mon);
+// Weeks run Sunday to Saturday
+const weekStart = d => new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());
+function weekCount(){ const start=ymd(weekStart(new Date()));
   return history.filter(x=>x>=start && x<=today()).length; }
-// Rolling calendar: one row per week (Mon to Sun), this week at the top, older weeks below.
+// Rolling calendar: one row per week (Sun to Sat), this week at the top, older weeks below.
 // Home: at least 26 weeks, back to the first session, with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
 function calendarHTML(mini){
   const now=new Date(), t=today(), done=new Set(history);
-  const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7));
+  const sun=weekStart(now);
   const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
-  const back=Math.ceil((mon-new Date(fy,fm-1,fd))/(7*864e5));
+  const back=Math.ceil((sun-new Date(fy,fm-1,fd))/(7*864e5));
   const weeks=mini?4:Math.max(26, back+1);
   let rows='', lastMonth=-1;
   for(let w=0; w<weeks; w++){
-    const start=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-7*w);
-    // Name the month beside its newest week (the top row, then wherever the Monday's month changes)
+    const start=new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()-7*w);
+    // Name the month beside its newest week (the top row, then wherever the Sunday's month changes)
     const m=start.getMonth();
     if(!mini) rows += `<span class="calm">${m!==lastMonth?start.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
     lastMonth=m;
@@ -48,9 +50,9 @@ function calendarHTML(mini){
       rows += `<span class="cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}">${mini?'':day.getDate()}</span>`;
     }
   }
-  if(mini) return `<div class="cal mini" role="img" aria-label="Sessions in the last 4 weeks: ${history.filter(x=>x<=t&&x>=ymd(new Date(mon-21*864e5))).length}">${rows}</div>`;
+  if(mini) return `<div class="cal mini" role="img" aria-label="Sessions in the last 4 weeks: ${history.filter(x=>x<=t&&x>=ymd(new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()-21))).length}">${rows}</div>`;
   const n=history.filter(x=>x<=t).length;
-  const head=['M','T','W','T','F','S','S'].map(x=>`<span>${x}</span>`).join('');
+  const head=['S','M','T','W','T','F','S'].map(x=>`<span>${x}</span>`).join('');
   return `<div class="calwrap" role="img" aria-label="Workout calendar: ${n} session${n===1?'':'s'} logged">
     <div class="cal calhead" aria-hidden="true"><span></span>${head}</div>
     <div class="calscroll" id="cal" aria-hidden="true"><div class="cal">${rows}</div></div></div>`;
