@@ -28,20 +28,20 @@ function logSession(){ if(!history.includes(today())) history.push(today()); try
 function weekCount(){ const d=new Date(); const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)); const start=ymd(mon);
   return history.filter(x=>x>=start && x<=today()).length; }
 // Rolling calendar: one column per week (Mon at top), oldest on the left, this week on the right.
-// Shows at least 26 weeks, and reaches back to the first logged session.
-function calendarHTML(){
+// Home: at least 26 weeks, back to the first session, with month names. Mini (finish screen): just the last 5 weeks.
+function calendarHTML(mini){
   const now=new Date(), t=today(), done=new Set(history);
   const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7));
   const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
   const back=Math.ceil((mon-new Date(fy,fm-1,fd))/(7*864e5));
-  const weeks=Math.max(26, back+1);
+  const weeks=mini?5:Math.max(26, back+1);
   let cells='', lastMonth=-1;
   for(let w=weeks-1; w>=0; w--){
     const start=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-7*w);
     const end=new Date(start.getFullYear(),start.getMonth(),start.getDate()+6);
     // Name the month over the week that holds its 1st (or the first column)
     const m = w===weeks-1 ? start.getMonth() : (end.getDate()<7 ? end.getMonth() : -1);
-    cells += `<span class="calm">${m>=0&&m!==lastMonth?end.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
+    if(!mini) cells += `<span class="calm">${m>=0&&m!==lastMonth?end.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
     if(m>=0) lastMonth=m;
     for(let d=0; d<7; d++){
       const k=ymd(new Date(start.getFullYear(),start.getMonth(),start.getDate()+d));
@@ -49,6 +49,7 @@ function calendarHTML(){
     }
   }
   const n=history.filter(x=>x<=t).length;
+  if(mini) return `<div class="cal mini" role="img" aria-label="Sessions in the last 5 weeks: ${history.filter(x=>x<=t&&x>=ymd(new Date(mon-28*864e5))).length}">${cells}</div>`;
   return `<div class="calscroll" id="cal" role="img" aria-label="Workout calendar: ${n} session${n===1?'':'s'} logged">
     <div class="cal">${cells}</div></div>`;
 }
@@ -114,8 +115,8 @@ function render(){
       <div class="champ">${avatarHTML('avatar big')}<span class="champtick" aria-hidden="true"><svg viewBox="0 0 120 120"><path d="M34 62l17 17 36-40" class="badge-tick"/></svg></span></div>
       <h1 class="hero">Session<br>done!</h1>
       <p class="lede">One step closer to your first pull-up.</p>
-      <div class="weekcard"><div class="weekdots">${[0,1,2].map(i=>`<span class="wd ${i<wk?'on':''}"></span>`).join('')}</div>
-        <div class="wklab">${wk} of 3 this week</div></div>
+      <div class="weekcard">${calendarHTML(true)}
+        <div class="wklab"><span class="wknum">${frac(wk,3)}</span>${wk>=3?'Full week done!':'this week'}</div></div>
       </div>
 </div>`;
     document.getElementById('home').onclick=goHome; bindAvatar();
