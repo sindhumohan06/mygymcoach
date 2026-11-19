@@ -27,8 +27,8 @@ try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
 function logSession(){ if(!history.includes(today())) history.push(today()); try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
 function weekCount(){ const d=new Date(); const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)); const start=ymd(mon);
   return history.filter(x=>x>=start && x<=today()).length; }
-// Rolling calendar: one row per week (Mon to Sun), oldest at the top, this week at the bottom.
-// Home: at least 26 weeks, back to the first session, with dates and month names; scrolls up for older weeks.
+// Rolling calendar: one row per week (Mon to Sun), this week at the top, older weeks below.
+// Home: at least 26 weeks, back to the first session, with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
 function calendarHTML(mini){
   const now=new Date(), t=today(), done=new Set(history);
@@ -37,12 +37,12 @@ function calendarHTML(mini){
   const back=Math.ceil((mon-new Date(fy,fm-1,fd))/(7*864e5));
   const weeks=mini?4:Math.max(26, back+1);
   let rows='', lastMonth=-1;
-  for(let w=weeks-1; w>=0; w--){
+  for(let w=0; w<weeks; w++){
     const start=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-7*w);
-    // Name the month beside its first week that starts on a Monday in it (or the top row)
-    const m = w===weeks-1 || start.getDate()<=7 ? start.getMonth() : -1;
-    if(!mini) rows += `<span class="calm">${m>=0&&m!==lastMonth?start.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
-    if(m>=0) lastMonth=m;
+    // Name the month beside its newest week (the top row, then wherever the Monday's month changes)
+    const m=start.getMonth();
+    if(!mini) rows += `<span class="calm">${m!==lastMonth?start.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
+    lastMonth=m;
     for(let d=0; d<7; d++){
       const day=new Date(start.getFullYear(),start.getMonth(),start.getDate()+d), k=ymd(day);
       rows += `<span class="cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}">${mini?'':day.getDate()}</span>`;
@@ -136,7 +136,6 @@ function render(){
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
       <button class="btn primary big" id="start">Start workout</button></div>`;
-    const cal=document.getElementById('cal'); cal.scrollTop=cal.scrollHeight;
     if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
     document.getElementById('start').onclick=startWorkout; bindAvatar();
     return;
