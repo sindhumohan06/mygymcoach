@@ -27,6 +27,31 @@ try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
 function logSession(){ if(!history.includes(today())) history.push(today()); try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
 function weekCount(){ const d=new Date(); const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)); const start=ymd(mon);
   return history.filter(x=>x>=start && x<=today()).length; }
+// Rolling calendar: one column per week (Mon at top), oldest on the left, this week on the right.
+// Shows at least 26 weeks, and reaches back to the first logged session.
+function calendarHTML(){
+  const now=new Date(), t=today(), done=new Set(history);
+  const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7));
+  const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
+  const back=Math.ceil((mon-new Date(fy,fm-1,fd))/(7*864e5));
+  const weeks=Math.max(26, back+1);
+  let cells='', lastMonth=-1;
+  for(let w=weeks-1; w>=0; w--){
+    const start=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-7*w);
+    const end=new Date(start.getFullYear(),start.getMonth(),start.getDate()+6);
+    // Name the month over the week that holds its 1st (or the first column)
+    const m = w===weeks-1 ? start.getMonth() : (end.getDate()<7 ? end.getMonth() : -1);
+    cells += `<span class="calm">${m>=0&&m!==lastMonth?end.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
+    if(m>=0) lastMonth=m;
+    for(let d=0; d<7; d++){
+      const k=ymd(new Date(start.getFullYear(),start.getMonth(),start.getDate()+d));
+      cells += `<span class="cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}"></span>`;
+    }
+  }
+  const n=history.filter(x=>x<=t).length;
+  return `<div class="calscroll" id="cal" role="img" aria-label="Workout calendar: ${n} session${n===1?'':'s'} logged">
+    <div class="cal">${cells}</div></div>`;
+}
 let homeTimer = null;
 function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; clearInterval(tick); logSession(); save(); render(); confetti(); scheduleHome(); }
 function scheduleHome(){ clearTimeout(homeTimer); if(!S.finished) return; const left = FINISH_MS - (Date.now()-(S.finishedAt||0));
@@ -102,13 +127,13 @@ function render(){
     app.innerHTML = `<div class="screen welcome">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>${n?`<span class="totpill">${n} session${n>1?'s':''} total</span>`:''}</div>
       <div class="hellorow">${avatarHTML('avatar')}<h1 class="hello">${hello},<br><span class="hl">Sindhu</span></h1></div>
-      <section class="bigweek" aria-label="Sessions this week">
-        <div class="bwrow"><div class="bwtext"><div class="bwhead"><span class="bwnum">${wk}</span><span class="bwof">of 3</span></div>
-        <div class="bwlab">${wk>=3?'Full week done!':'sessions this week'}</div></div>
-        <div class="bwdots">${[0,1,2].map(i=>`<span class="bwd ${i<wk?'on':''}" aria-label="Session ${i+1}${i<wk?' done':''}">${i<wk?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':i+1}</span>`).join('')}</div></div>
+      <section class="bigweek" aria-label="Your sessions">
+        <div class="bwhead"><span class="bwnum">${frac(wk,3)}</span><span class="bwlab">${wk>=3?'Full week done!':'this week'}</span></div>
+        ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
       <button class="btn primary big" id="start">Start workout</button></div>`;
+    const cal=document.getElementById('cal'); cal.scrollLeft=cal.scrollWidth;
     if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
     document.getElementById('start').onclick=startWorkout; bindAvatar();
     return;
