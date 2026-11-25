@@ -18,6 +18,7 @@ A static site with no build step and no dependencies to install. Plain `<script>
 - **Set 1** of an exercise: a big 3D demo with the muscle key, then a compact card (name, "Set 1/3" chip, reps). While resting, a compact rest card with a small ring sits below it.
 - **Set 2 on** (`.focus`): a full card with a centred chip and big reps, or a big rest ring with a "Set 2/3 next" chip. The card is only as tall as its content, and the demo takes the remaining height (at least 100px).
 - **Done** logs the set and starts the rest timer.
+- **Voice:** `say()` speaks via speechSynthesis: "10 seconds" before a rest ends, then what's next (`nextLine()`), and a line at the finish. `spoken()` turns `big`/`unit` into speakable text, so check it when adding new rep formats. iOS needs `unlockAudio()` (called on taps) to prime speech.
 
 ## Design rules
 

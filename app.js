@@ -58,7 +58,7 @@ function calendarHTML(mini){
     <div class="calscroll" id="cal" aria-hidden="true"><div class="cal">${rows}</div></div></div>`;
 }
 let homeTimer = null;
-function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; clearInterval(tick); logSession(); save(); render(); confetti(); scheduleHome(); }
+function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; clearInterval(tick); logSession(); save(); render(); confetti(); say('Workout complete. Great job, Sindhu!'); scheduleHome(); }
 function scheduleHome(){ clearTimeout(homeTimer); if(!S.finished) return; const left = FINISH_MS - (Date.now()-(S.finishedAt||0));
   homeTimer = setTimeout(goHome, Math.max(0,left)); }
 function goHome(){ clearTimeout(homeTimer); S=fresh(); save(); render(); }
@@ -87,11 +87,30 @@ function beep(){
   }catch(e){}
   try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
 }
-function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume && audio.resume(); }catch(e){} }
+function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume && audio.resume(); }catch(e){}
+  // iOS only lets a page speak after it has spoken once during a tap, so prime it silently
+  try{ if(!voiceReady && window.speechSynthesis){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); voiceReady=true; } }catch(e){} }
+
+// Spoken announcements: what's next when a rest ends, and a heads-up 10 seconds before
+let voiceReady = false, warned = false;
+function say(text, delay){
+  try{ if(!window.speechSynthesis) return;
+    setTimeout(()=>{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-GB'; u.rate=1; speechSynthesis.speak(u); }, delay||0);
+  }catch(e){}
+}
+const spoken = t => t.replace(/(\d)\s*s\+/g,'$1 seconds or more').replace(/\s\+\s/g,' and ').replace(/\s*·\s*/g,', ')
+  .replace(/(\d)\s*–\s*(\d)/g,'$1 to $2').replace(/(\d)\s*s\b/g,'$1 seconds').replace(/\bsec\b/g,'seconds').replace(/\s+/g,' ').trim();
+function nextLine(){
+  const st=STEPS[S.step], done=S.done[st.id]||0;
+  if(done>=st.sets) return 'Rest over.';
+  const reps=spoken(`${st.big} ${st.unit}`);
+  if(done===0) return `Rest over. Next up, ${st.name}. ${st.sets>1?`Set 1 of ${st.sets}, `:''}${reps}.`;
+  return `Rest over. Set ${done+1} of ${st.sets}, ${reps}.`;
+}
 
 function startRest(sec){
   unlockAudio(); keepAwake();
-  rest = {end:Date.now()+sec*1000, total:sec};
+  rest = {end:Date.now()+sec*1000, total:sec}; warned = sec<=15;
   clearInterval(tick); tick = setInterval(updateRest, 250);
   render();
 }
@@ -99,7 +118,8 @@ function stopRest(){ rest=null; clearInterval(tick); render(); }
 function updateRest(){
   if(!rest) return;
   const left = (rest.end-Date.now())/1000;
-  if(left<=0){ beep(); stopRest(); return; }
+  if(left<=0){ beep(); say(nextLine(), 700); stopRest(); return; }
+  if(!warned && left<=10){ warned=true; say('10 seconds'); }
   const t=document.getElementById('rt'), c=document.getElementById('rc');
   if(t) t.textContent = fmt(left);
   if(c) c.style.strokeDashoffset = String(289*(1-left/rest.total));
@@ -208,7 +228,7 @@ function render(){
   document.getElementById('leavescrim').onclick=e=>{ if(e.target.id==='leavescrim') closeLeave(); };
   document.getElementById('next').onclick=()=>go(S.step+1);
   if(rest){
-    document.getElementById('plus').onclick=()=>{ rest.end+=15000; rest.total+=15; updateRest(); };
+    document.getElementById('plus').onclick=()=>{ rest.end+=15000; rest.total+=15; if((rest.end-Date.now())/1000>10) warned=false; updateRest(); };
     document.getElementById('skip').onclick=stopRest;
     updateRest();
   } else {
