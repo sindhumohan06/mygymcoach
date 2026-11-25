@@ -102,10 +102,10 @@ const spoken = t => t.replace(/(\d)\s*s\+/g,'$1 seconds or more').replace(/\s\+\
   .replace(/(\d)\s*–\s*(\d)/g,'$1 to $2').replace(/(\d)\s*s\b/g,'$1 seconds').replace(/\bsec\b/g,'seconds').replace(/\s+/g,' ').trim();
 function nextLine(){
   const st=STEPS[S.step], done=S.done[st.id]||0;
-  if(done>=st.sets) return 'Rest over.';
+  if(done>=st.sets) return '';
   const reps=spoken(`${st.big} ${st.unit}`);
-  if(done===0) return `Rest over. Next up, ${st.name}. ${st.sets>1?`Set 1 of ${st.sets}, `:''}${reps}.`;
-  return `Rest over. Set ${done+1} of ${st.sets}, ${reps}.`;
+  if(done===0) return `Next up, ${st.name}. ${st.sets>1?'Set 1, ':''}${reps}.`;
+  return `Set ${done+1}, ${reps}.`;
 }
 
 function startRest(sec){
@@ -118,7 +118,7 @@ function stopRest(){ rest=null; clearInterval(tick); render(); }
 function updateRest(){
   if(!rest) return;
   const left = (rest.end-Date.now())/1000;
-  if(left<=0){ beep(); say(nextLine(), 700); stopRest(); return; }
+  if(left<=0){ beep(); { const l=nextLine(); if(l) say(l, 700); } stopRest(); return; }
   if(!warned && left<=10){ warned=true; say('10 seconds'); }
   const t=document.getElementById('rt'), c=document.getElementById('rc');
   if(t) t.textContent = fmt(left);
