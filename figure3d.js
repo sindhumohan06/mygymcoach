@@ -37,17 +37,15 @@ const View3D = (() => {
   const rowTop = {...rowBot, RH:[0.02,0.82,0.22], poles:{...rowBot.poles, RE:[0.5,1,0.3]}};
   E.row = { cam:{az:28, el:18, dist:2.9, ty:0.65, tx:0}, bench:true, keys:[0,0.9,1.4,2.6], poses:[rowBot,rowTop], seq:[0,1,1,0], muscles:{lats:'m1', uaR:'m2', deltR:'m2'}};
 
-  const pushPose = th => { const r = th*Math.PI/180, c = Math.cos(r), s = Math.sin(r), Fx = 0.81, Fy = 0.1;
+  // th: body angle from the floor; Fx: feet distance from the hands; Hy: hand height (table edge or floor)
+  const pushPose = (th, Fx = 0.81, Hy = 0.78) => { const r = th*Math.PI/180, c = Math.cos(r), s = Math.sin(r), Fy = 0.1;
     return { lat:[0,0,1], toe:nrm([-0.6,-1,0]), sh:-0.04, P:[Fx-0.85*c, Fy+0.85*s-0.06, 0], N:[Fx-1.36*c, Fy+1.36*s-0.06, 0],
-      LH:[0,0.78,-0.24], RH:[0,0.78,0.24], LF:[Fx,Fy,-0.11], RF:[Fx,Fy,0.11],
+      LH:[0,Hy,-0.24], RH:[0,Hy,0.24], LF:[Fx,Fy,-0.11], RF:[Fx,Fy,0.11],
       poles:{LE:[1,0.6,-1], RE:[1,0.6,1], LK:[1,1,0], RK:[1,1,0]} }; };
   E.push = { cam:{az:-25, el:0, dist:3.0, ty:0.75, tx:0.25}, table:true, keys:[0,1.1,1.4,2.5], poses:[pushPose(67), pushPose(47)], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2', abs:'m2'}};
 
-  const pressBot = { lat:[0,0,-1], toe:[1,0,0], sh:-0.04, P:[0.36,0.12,0], N:[-0.14,0.12,0],
-    LH:[-0.08,0.36,0.36], RH:[-0.08,0.36,-0.36], LF:[0.76,0.07,0.15], RF:[0.76,0.07,-0.15],
-    poles:{LE:[0.2,-1,0.6], RE:[0.2,-1,-0.6], LK:[0,1,0.2], RK:[0,1,-0.2]}, db:['L','R'], dbAxis:[0,0,1]};
-  const pressTop = {...pressBot, LH:[-0.12,0.66,0.2], RH:[-0.12,0.66,-0.2]};
-  E.press = { cam:{az:8, el:30, dist:2.7, ty:0.3, tx:0.2}, floorOnly:true, keys:[0,1,1.4,2.6], poses:[pressBot, pressTop], seq:[0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2'}};
+  // Push-up negative on the floor: hold the top, lower over about 4 seconds, then back up to reset
+  E.pushneg = { cam:{az:-30, el:10, dist:2.9, ty:0.3, tx:0.6}, keys:[0,0.7,4.9,5.6,6.6], poses:[pushPose(23, 1.27, 0.02), pushPose(10.5, 1.27, 0.02)], seq:[0,0,1,1,0], muscles:{pecs:'m1', ua:'m2', delt:'m2', abs:'m2'}};
 
   const stand = (LH, RH) => ({ lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0,0.96,0], N:[0,1.46,0],
     LF:[0,0.06,-0.11], RF:[0,0.06,0.11], LH, RH, poles:{LE:[0,-1,0.2], RE:[0,-1,-0.2], LK:[-1,0,0], RK:[-1,0,0]} });
