@@ -38,6 +38,13 @@ try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
 function saveHistory(){ try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
 function logSession(){ if(!history.includes(today())) history.push(today()); saveHistory(); }
 function unlogSession(k){ history=history.filter(x=>x!==k); saveHistory(); }
+// Hang practice days, kept apart from workouts so they don't count towards the week
+const GKEY='pullup-coach-hangs';
+let hangs = [];
+try{ hangs = JSON.parse(localStorage.getItem(GKEY)) || []; }catch(e){}
+function saveHangs(){ try{ localStorage.setItem(GKEY, JSON.stringify(hangs)); }catch(e){} }
+function logHang(){ if(!hangs.includes(today())) hangs.push(today()); saveHangs(); }
+function unlogHang(k){ hangs=hangs.filter(x=>x!==k); saveHangs(); }
 // Weeks run Sunday to Saturday
 const weekStart = d => new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());
 function weekCount(){ const start=ymd(weekStart(new Date()));
@@ -46,10 +53,20 @@ function weekCount(){ const start=ymd(weekStart(new Date()));
 // Home: back to the week of the first session (no earlier weeks), with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
 const dayName = k => { const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'}); };
+const loggedWhat = k => [history.includes(k)&&'workout', hangs.includes(k)&&'hang practice'].filter(Boolean).join(' and ');
+// The remove sheet for a logged day: one Remove button, or a choice when both were logged
+function rmSheet(k){
+  const w=history.includes(k), g=hangs.includes(k);
+  if(w&&g) return `<h2 class="leavetitle" id="rmtitle">Remove which?</h2><p class="leavetext" id="rmtext">${dayName(k)}</p>
+    <div class="leavebtns stack"><button class="btn primary" data-rm="w">Workout</button><button class="btn primary" data-rm="g">Hang practice</button><button class="btn quiet" id="rmkeep">Keep</button></div>`;
+  return `<h2 class="leavetitle" id="rmtitle">${w?'Remove this session?':'Remove hang practice?'}</h2>
+    <p class="leavetext" id="rmtext">${w?`${dayName(k)} won't count as a workout.`:`${dayName(k)}'s hang practice will come off the calendar.`}</p>
+    <div class="leavebtns"><button class="btn quiet" id="rmkeep">Keep</button><button class="btn primary" data-rm="${w?'w':'g'}">Remove</button></div>`;
+}
 function calendarHTML(mini){
-  const now=new Date(), t=today(), done=new Set(history);
-  const sun=weekStart(now);
-  const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
+  const now=new Date(), t=today(), done=new Set(history), hung=new Set(hangs);
+  const sun=weekStart(now), all=history.concat(hangs);
+  const first=all.length?all.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
   const back=Math.ceil((sun-new Date(fy,fm-1,fd))/(7*864e5));
   const weeks=mini?4:Math.max(1, back+1);
   let rows='', lastMonth=-1;
@@ -61,9 +78,10 @@ function calendarHTML(mini){
     lastMonth=m;
     for(let d=0; d<7; d++){
       const day=new Date(start.getFullYear(),start.getMonth(),start.getDate()+d), k=ymd(day);
-      const cls=`cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}`;
+      // Workout days are filled; hang practice days get a dot (home calendar only)
+      const cls=`cald${done.has(k)?' on':''}${!mini&&hung.has(k)?' hg':''}${k===t?' now':''}${k>t?' fut':''}`;
       // On the home calendar a logged day is a button, so a session logged by mistake can be removed
-      rows += !mini && done.has(k) ? `<button class="${cls}" data-day="${k}" aria-label="${dayName(k)}, session logged. Remove">${day.getDate()}</button>`
+      rows += !mini && (done.has(k)||hung.has(k)) ? `<button class="${cls}" data-day="${k}" aria-label="${dayName(k)}, ${loggedWhat(k)} logged. Remove">${day.getDate()}</button>`
         : `<span class="${cls}" aria-hidden="true">${mini?'':day.getDate()}</span>`;
     }
   }
@@ -87,6 +105,7 @@ let tipsOpen = false, leaveOpen = false, removeDay = null;
 let tick = null, audio = null, wake = null;
 
 const frac = (n,of) => `<span aria-hidden="true">${n}<span class="of">/${of}</span></span><span class="sr">${n} of ${of}</span>`;
+const NOFIG = '<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>';
 const chip = t => `<div class="setchip">${t}</div>`;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 const ICON = {
@@ -142,11 +161,82 @@ function updateRest(){
   if(c) c.style.strokeDashoffset = String(289*(1-left/rest.total));
 }
 
+// ---------- Hang practice: rounds of easy hangs with spoken cues ----------
+const HANG = {rounds:10, on:10, off:20, ready:8};
+let hang = null; // {phase:'ready'|'hang'|'rest'|'done', round, doneRounds, end, total, paused, left, said}
+function hangPhase(p, sec, from){ hang.phase=p; hang.total=sec; hang.end=(from||Date.now())+sec*1000; hang.said={}; }
+const hangLeft = () => hang.paused ? hang.left : (hang.end-Date.now())/1000;
+function startHang(){
+  unlockAudio(); keepAwake();
+  hang = {round:1, doneRounds:0, paused:false};
+  hangPhase('ready', HANG.ready);
+  say(`Hang practice, ${HANG.rounds} rounds. Feet on the chair, and keep it easy.`);
+  clearInterval(tick); tick = setInterval(updateHang, 200);
+  render();
+}
+function updateHang(){
+  if(!hang || hang.paused || hang.phase==='done') return;
+  const left = hangLeft();
+  if(left<=0){
+    // Chain from the planned end time, so the rounds stay on time after the phone sleeps
+    const at = hang.end;
+    if(hang.phase==='hang'){
+      hang.doneRounds++;
+      if(hang.doneRounds>=HANG.rounds) return finishHang();
+      hang.round++; hangPhase('rest', HANG.off, at); say('And rest.');
+    } else { hangPhase('hang', HANG.on, at); say('Hang.'); }
+    render(); return;
+  }
+  // Count down into each hang, and name the round partway through the rest
+  if(hang.phase!=='hang'){
+    const s = Math.ceil(left);
+    if(hang.phase==='rest' && s===6 && !hang.said[6]){ hang.said[6]=1; say(`Round ${hang.round}.`); }
+    if(s<=3 && !hang.said[s]){ hang.said[s]=1; say(String(s)); }
+  }
+  const t=document.getElementById('ht'), c=document.getElementById('hc');
+  if(t) t.textContent = Math.ceil(left);
+  if(c) c.style.strokeDashoffset = String(289*(1-left/hang.total));
+}
+function finishHang(){ hang.phase='done'; hang.paused=false; clearInterval(tick); logHang(); render(); confetti(); say(`That's ${HANG.rounds} rounds. Nice work, Sindhu!`); }
+function pauseHang(){ if(hang.paused){ hang.end=Date.now()+hang.left*1000; hang.paused=false; keepAwake(); } else { hang.left=hangLeft(); hang.paused=true; } render(); }
+// Leaving early still logs the day once half the rounds are done
+function leaveHang(){
+  if(hang && hang.phase!=='done' && hang.doneRounds>=HANG.rounds/2) logHang();
+  hang=null; clearInterval(tick); try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render();
+}
+function renderHang(app){
+  app.classList.add('focus');
+  const h=hang, done=h.phase==='done', left=done?0:hangLeft();
+  const segs=Array.from({length:HANG.rounds},(_,i)=>`<div class="seg ${i<h.doneRounds?'done':''} ${!done&&i===h.round-1?'now':''}"></div>`).join('');
+  const word={ready:'Get ready', hang:'Hang', rest:'Rest'}[h.phase];
+  app.innerHTML = `
+    <div class="top">
+      <button class="iconbtn" id="hback" aria-label="${done?'Home':'Leave hang practice'}">${ICON.prev}</button>
+      <div class="progress"><div class="plabel count"><span class="sr">Round </span>${frac(h.round,HANG.rounds)}</div><div class="segs" style="grid-template-columns:repeat(${HANG.rounds},minmax(0,1fr))">${segs}</div></div>
+      <span class="iconspace" aria-hidden="true"></span>
+    </div>
+    <div class="stage"><div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div></div>
+    <div class="zone">
+      <div class="card fcard hcard${h.phase==='hang'?' on':''}">
+        ${done ? `<h1 class="name hword">Done!</h1><p class="hnote">${HANG.rounds} rounds of easy hangs</p>` :
+        `<h1 class="name hword" aria-live="polite">${word}</h1>
+        <div class="ring" role="timer" aria-live="off"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" class="track" stroke-width="7"/>
+          <circle id="hc" cx="50" cy="50" r="46" fill="none" class="arc" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="${289*(1-left/h.total)}"/></svg>
+          <div class="t" id="ht">${Math.ceil(left)}</div></div>`}
+      </div>
+      <div class="actions one"><button class="btn ${done?'primary':'soft'}" id="hmain">${done?'Home':h.paused?'Resume':'Pause'}</button></div>
+    </div>`;
+  if(View3D) View3D.mount(document.getElementById('figwrap'), 'easyhang');
+  document.getElementById('hback').onclick=leaveHang;
+  document.getElementById('hmain').onclick=()=>{ unlockAudio(); done?leaveHang():pauseHang(); };
+}
+
 function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render(); }
 
 function render(){
   const app=document.getElementById('app');
   app.classList.remove('focus');
+  if(hang) return renderHang(app);
   if(S.finished){
     const n = history.length, wk = weekCount();
     app.innerHTML = `<div class="screen finish">
@@ -174,24 +264,24 @@ function render(){
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
-      <button class="btn primary big" id="start">Start workout</button></div>
+      <div class="homebtns"><button class="btn primary big" id="start">Start workout</button><button class="btn soft" id="hangbtn">Hang practice</button></div></div>
     <div class="scrim" id="rmscrim" ${removeDay?'':'hidden'}>
-      <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">
-        <h2 class="leavetitle" id="rmtitle">Remove this session?</h2>
-        <p class="leavetext" id="rmtext">${removeDay?dayName(removeDay):''} won't count as a workout.</p>
-        <div class="leavebtns"><button class="btn quiet" id="rmkeep">Keep</button><button class="btn primary" id="rmgo">Remove</button></div>
-      </div>
+      <div class="sheet" id="rmsheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">${removeDay?rmSheet(removeDay):''}</div>
     </div>`;
     if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
-    document.getElementById('start').onclick=startWorkout; bindAvatar();
+    document.getElementById('start').onclick=startWorkout; document.getElementById('hangbtn').onclick=startHang; bindAvatar();
     // Tapping a logged day asks before removing it; the sheet opens without a re-render so the calendar keeps its scroll
-    const rm=document.getElementById('rmscrim');
-    document.querySelectorAll('.cald[data-day]').forEach(b=>b.onclick=()=>{ removeDay=b.dataset.day;
-      document.getElementById('rmtext').textContent=`${dayName(removeDay)} won't count as a workout.`; rm.hidden=false; document.getElementById('rmkeep').focus(); });
+    const rm=document.getElementById('rmscrim'), sheet=document.getElementById('rmsheet');
     const closeRemove=()=>{ const b=document.querySelector(`.cald[data-day="${removeDay}"]`); removeDay=null; rm.hidden=true; if(b) b.focus(); };
-    document.getElementById('rmkeep').onclick=closeRemove;
+    const bindRemove=()=>{
+      document.getElementById('rmkeep').onclick=closeRemove;
+      sheet.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ const top=document.getElementById('cal').scrollTop;
+        (b.dataset.rm==='w'?unlogSession:unlogHang)(removeDay); removeDay=null; render(); document.getElementById('cal').scrollTop=top; });
+    };
+    document.querySelectorAll('.cald[data-day]').forEach(b=>b.onclick=()=>{ removeDay=b.dataset.day;
+      sheet.innerHTML=rmSheet(removeDay); bindRemove(); rm.hidden=false; document.getElementById('rmkeep').focus(); });
+    if(removeDay) bindRemove();
     rm.onclick=e=>{ if(e.target===rm) closeRemove(); };
-    document.getElementById('rmgo').onclick=()=>{ const top=document.getElementById('cal').scrollTop; unlogSession(removeDay); removeDay=null; render(); document.getElementById('cal').scrollTop=top; };
     return;
   }
   const st=STEPS[S.step], done=S.done[st.id]||0, complete=done>=st.sets, last=S.step===STEPS.length-1;
@@ -217,7 +307,7 @@ function render(){
       <button class="iconbtn" id="next" aria-label="Next exercise" ${last?'disabled':''}>${ICON.next}</button>
     </div>
     <div class="stage">
-      <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
+      <div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div>
       <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span>${st.msl?`<span><i class="k2"></i>${st.msl}</span>`:''}</div></div></div>
     <div class="zone">
     <div class="card${focus?' fcard':' ccard'}${focus&&rest?' resting':''}">
@@ -279,7 +369,7 @@ document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
   if(tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; }
   if(leaveOpen){ leaveOpen=false; const sc=document.getElementById('leavescrim'); if(sc) sc.hidden=true; }
   if(removeDay){ removeDay=null; const sc=document.getElementById('rmscrim'); if(sc) sc.hidden=true; } });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(hang) updateHang(); if(wake===null && (rest||hang)) keepAwake(); }});
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>View3D&&View3D.rebuild()); new MutationObserver(()=>View3D&&View3D.rebuild()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
 function confetti(){
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;

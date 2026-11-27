@@ -30,6 +30,9 @@ const View3D = (() => {
 
   const hangA = {...active, sh:-0.04, P:[-0.015,1.2,0.03]}, hangB = {...active, sh:-0.04, P:[0.015,1.2,-0.03]};
   E.hang = { cam:{az:200, el:10, dist:3.4, ty:1.45}, bar:true, keys:[0,2,4], poses:[hangA, hangB], seq:[0,1,0], muscles:{fa:'m1', lats:'m2'}};
+  // Easy hang for hang practice: a chair under the bar, knees bent and feet on it taking some of the weight
+  const easyA = {...active, sh:-0.04, P:[0,1.2,0], toe:nrm([0,-0.2,1]), LF:[-0.1,0.53,0.02], RF:[0.1,0.53,0.02]}, easyB = {...easyA, P:[0,1.21,-0.02]};
+  E.easyhang = { cam:{az:215, el:10, dist:4.2, ty:1.3}, bar:true, chair:true, chairZ:0, keys:[0,2,4], poses:[easyA, easyB], seq:[0,1,0], muscles:{fa:'m1'}};
 
   const rowBot = { lat:[0,0,1], toe:[-1,0,0], sh:-0.05, P:[0.25,0.92,0], N:[-0.26,0.98,0],
     LH:[-0.46,0.52,-0.2], RH:[-0.24,0.4,0.22], LF:[0.02,0.08,-0.2], RF:[0.36,0.08,0.24],
@@ -100,7 +103,7 @@ const View3D = (() => {
     const eq = mats.eq;
     if (def.bar){ rod(V(-0.62,BAR_Y,0), V(0.62,BAR_Y,0), 0.018, eq); rod(V(-0.62,BAR_Y,0), V(-0.62,BAR_Y,-0.18), 0.022, eq); rod(V(0.62,BAR_Y,0), V(0.62,BAR_Y,-0.18), 0.022, eq);
       box(0.08, 0.5, 0.04, -0.66, BAR_Y-0.05, -0.2, eq); box(0.08, 0.5, 0.04, 0.66, BAR_Y-0.05, -0.2, eq); }
-    if (def.chair){ box(0.44,0.04,0.42, 0,0.46,-0.5, eq); [[-0.19,-0.69],[0.19,-0.69],[-0.19,-0.31],[0.19,-0.31]].forEach(([x,z]) => box(0.03,0.44,0.03, x,0.22,z, eq)); }
+    if (def.chair){ const cz = def.chairZ ?? -0.5; box(0.44,0.04,0.42, 0,0.46,cz, eq); [[-0.19,-0.19],[0.19,-0.19],[-0.19,0.19],[0.19,0.19]].forEach(([x,z]) => box(0.03,0.44,0.03, x,0.22,cz+z, eq)); }
     if (def.bench){ box(0.5,0.04,0.44, -0.5,0.46,-0.18, eq); [[-0.72,-0.37],[-0.28,-0.37],[-0.72,0.01],[-0.28,0.01]].forEach(([x,z]) => box(0.03,0.44,0.03, x,0.22,z, eq)); }
     if (def.table){ box(0.8,0.04,0.9, -0.38,0.76,0, eq); [[-0.74,-0.4],[-0.04,-0.4],[-0.74,0.4],[-0.04,0.4]].forEach(([x,z]) => box(0.04,0.74,0.04, x,0.37,z, eq)); }
     if (def.treadmill){ box(1.5,0.07,0.6, 0.1,0.035,0, eq); rod(V(-0.6,0.07,-0.28), V(-0.72,1.15,-0.28), 0.02, eq); rod(V(-0.6,0.07,0.28), V(-0.72,1.15,0.28), 0.02, eq);

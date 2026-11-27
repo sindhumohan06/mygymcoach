@@ -133,6 +133,26 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .cald.on{background:var(--accent);color:var(--accent-ink)}
 .cald.now:not(.on){box-shadow:inset 0 0 0 2px var(--accent);color:var(--ink)}
 .cald.fut{visibility:hidden}
+.cald{position:relative}
+.cald.hg::after{content:'';position:absolute;bottom:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--accent)}
+.cald.on.hg::after{background:var(--accent-ink)}
+.homebtns{display:flex;flex-direction:column;gap:10px}
+.soft{background:var(--surface);color:var(--ink)}
+.leavebtns.stack{grid-template-columns:1fr}
+/* Hang practice: the card turns solid while you hang, so the phase reads from across the room */
+.iconspace{width:44px;flex:none}
+.actions.one{grid-template-columns:1fr}
+.hcard{align-items:center;text-align:center;padding:18px;transition:background .2s,color .2s}
+.hcard .hword{font-size:40px}
+.hcard .ring{width:clamp(120px,26vh,210px);height:clamp(120px,26vh,210px)}
+.hcard .ring .t{font-size:56px}
+.hcard .track{stroke:var(--line)} .hcard .arc{stroke:var(--accent)}
+.hcard.on{background:var(--accent);color:var(--accent-ink)}
+.hcard.on .ring .t{color:var(--accent-ink)}
+.hcard.on .track{stroke:var(--accent-ink);opacity:.25} .hcard.on .arc{stroke:var(--accent-ink)}
+.hnote{margin:0;color:var(--muted);font-size:17px}
+@media (max-height:620px){.hcard .ring{width:96px;height:96px}.hcard .ring .t{font-size:32px}.hcard .hword{font-size:30px}}
+@media (prefers-reduced-motion: reduce){.hcard{transition:none}}
 .decor{flex:1;min-height:90px;position:relative}
 .decor .figwrap{position:absolute;inset:0}
 .decor .c3d{pointer-events:none;cursor:default}
