@@ -197,38 +197,52 @@ function updateHang(){
   if(t) t.textContent = Math.ceil(left);
   if(c) c.style.strokeDashoffset = String(289*(1-left/hang.total));
 }
-function finishHang(){ hang.phase='done'; hang.paused=false; clearInterval(tick); logHang(); render(); confetti(); say(`That's ${HANG.rounds} rounds. Nice work, Sindhu!`); }
-function pauseHang(){ if(hang.paused){ hang.end=Date.now()+hang.left*1000; hang.paused=false; keepAwake(); } else { hang.left=hangLeft(); hang.paused=true; } render(); }
-// Leaving early still logs the day once half the rounds are done
-function leaveHang(){
-  if(hang && hang.phase!=='done' && hang.doneRounds>=HANG.rounds/2) logHang();
-  hang=null; clearInterval(tick); try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render();
+const HANG_MIN = 3; // ending early still logs the day after this many rounds
+const roundsText = n => `${n} round${n===1?'':'s'}`;
+// Done: the full set gets confetti; ending early after HANG_MIN rounds shows what was done
+function finishHang(){
+  const full = hang.doneRounds>=HANG.rounds;
+  hang.phase='done'; hang.paused=false; hang.round=hang.doneRounds; clearInterval(tick); logHang(); render();
+  if(full) confetti();
+  say(`${full?"That's ":''}${roundsText(hang.doneRounds)}. Nice work, Sindhu!`);
 }
+function pauseHang(){ hang.left=hangLeft(); hang.paused=true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render(); }
+// Resuming mid-hang restarts that hang after a short count, since you've likely let go of the bar
+function resumeHang(){
+  hang.paused=false; keepAwake();
+  if(hang.phase==='hang') hangPhase('ready', 4); else hang.end=Date.now()+hang.left*1000;
+  render();
+}
+function endHang(){ if(hang.phase!=='done' && hang.doneRounds>=HANG_MIN) return finishHang(); leaveHang(); }
+function leaveHang(){ hang=null; clearInterval(tick); try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render(); }
+const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg>';
 function renderHang(app){
   app.classList.add('focus');
   const h=hang, done=h.phase==='done', left=done?0:hangLeft();
   const segs=Array.from({length:HANG.rounds},(_,i)=>`<div class="seg ${i<h.doneRounds?'done':''} ${!done&&i===h.round-1?'now':''}"></div>`).join('');
-  const word={ready:'Get ready', hang:'Hang', rest:'Rest'}[h.phase];
+  const word=h.paused?'Paused':{ready:'Get ready', hang:'Hang', rest:'Rest'}[h.phase];
   app.innerHTML = `
     <div class="top">
-      <button class="iconbtn" id="hback" aria-label="${done?'Home':'Leave hang practice'}">${ICON.prev}</button>
+      <button class="iconbtn" id="hback" aria-label="${done?'Home':'End hang practice'}">${ICON.prev}</button>
       <div class="progress"><div class="plabel count"><span class="sr">Round </span>${frac(h.round,HANG.rounds)}</div><div class="segs" style="grid-template-columns:repeat(${HANG.rounds},minmax(0,1fr))">${segs}</div></div>
-      <span class="iconspace" aria-hidden="true"></span>
+      ${done||h.paused?'<span class="iconspace" aria-hidden="true"></span>':`<button class="iconbtn" id="hpause" aria-label="Pause">${PAUSE_ICON}</button>`}
     </div>
     <div class="stage"><div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div></div>
     <div class="zone">
-      <div class="card fcard hcard${h.phase==='hang'?' on':''}">
-        ${done ? `<h1 class="name hword">Done!</h1><p class="hnote">${HANG.rounds} rounds of easy hangs</p>` :
+      <div class="card fcard hcard${h.phase==='hang'&&!h.paused?' on':''}">
+        ${done ? `<h1 class="name hword">Done!</h1><p class="hnote">${roundsText(h.doneRounds)} of easy hangs</p>` :
         `<h1 class="name hword" aria-live="polite">${word}</h1>
         <div class="ring" role="timer" aria-live="off"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" class="track" stroke-width="7"/>
           <circle id="hc" cx="50" cy="50" r="46" fill="none" class="arc" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="${289*(1-left/h.total)}"/></svg>
           <div class="t" id="ht">${Math.ceil(left)}</div></div>`}
       </div>
-      <div class="actions one"><button class="btn ${done?'primary':'soft'}" id="hmain">${done?'Home':h.paused?'Resume':'Pause'}</button></div>
+      ${done ? '<div class="actions one"><button class="btn primary" id="hhome">Home</button></div>' :
+        h.paused ? '<div class="actions two"><button class="btn primary" id="hresume">Resume</button><button class="btn soft" id="hend">End</button></div>' : ''}
     </div>`;
   if(View3D) View3D.mount(document.getElementById('figwrap'), 'easyhang');
-  document.getElementById('hback').onclick=leaveHang;
-  document.getElementById('hmain').onclick=()=>{ unlockAudio(); done?leaveHang():pauseHang(); };
+  const on=(id,f)=>{ const el=document.getElementById(id); if(el) el.onclick=()=>{ unlockAudio(); f(); }; };
+  on('hback', endHang); on('hpause', pauseHang); on('hresume', resumeHang); on('hend', endHang); on('hhome', leaveHang);
+  const first=document.getElementById('hresume'); if(first) first.focus();
 }
 
 function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render(); }

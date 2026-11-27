@@ -22,7 +22,7 @@ A static site with no build step and no dependencies to install. Plain `<script>
 
 ## Hang practice
 
-A second home-screen button runs easy grip hangs on their own, any day: `HANG` sets 10 rounds of 10 s hanging and 20 s resting, after an 8 s get-ready. The `hang` object holds the running session in memory only (not saved), and the voice counts down "3, 2, 1" into each hang. Finishing, or leaving after half the rounds, logs the day in `hangs`. The calendar marks those days with a dot, separate from workout days, and they don't count towards the week.
+A second home-screen button runs easy grip hangs on their own, any day: `HANG` sets 10 rounds of 10 s hanging and 20 s resting, after an 8 s get-ready. The `hang` object holds the running session in memory only (not saved), and the voice counts down "3, 2, 1" into each hang. A small pause button sits top right; paused, the screen offers Resume and End. Finishing, or ending after `HANG_MIN` rounds, logs the day in `hangs`. The calendar marks those days with a dot, separate from workout days, and they don't count towards the week.
 
 ## Design rules
 

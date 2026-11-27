@@ -142,6 +142,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* Hang practice: the card turns solid while you hang, so the phase reads from across the room */
 .iconspace{width:44px;flex:none}
 .actions.one{grid-template-columns:1fr}
+.actions.two{grid-template-columns:1fr 1fr}
 .hcard{align-items:center;text-align:center;padding:18px;transition:background .2s,color .2s}
 .hcard .hword{font-size:40px}
 .hcard .ring{width:clamp(120px,26vh,210px);height:clamp(120px,26vh,210px)}
