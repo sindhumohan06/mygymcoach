@@ -110,8 +110,18 @@ const chip = t => `<div class="setchip">${t}</div>`;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 const ICON = {
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
-  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  // Icons for the big action buttons, drawn at the button's text size
+  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 4.8v14.4a1 1 0 0 0 1.5.86l11.6-7.2a1 1 0 0 0 0-1.72L9.5 3.94A1 1 0 0 0 8 4.8z"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5.5" y="5.5" width="13" height="13" rx="2.5"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5" fill="currentColor"/></svg>',
+  hang:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3.5h18"/><path d="M8 3.5l2.5 7M16 3.5l-2.5 7"/><circle cx="12" cy="7.5" r="1.7" fill="currentColor" stroke="none"/><path d="M10.5 10.5h3M12 10.5v5.5M12 16l-2 5M12 16l2 5"/></svg>'
 };
+// Button content: an icon then its label (a forward arrow goes after it)
+const withIcon = (icon, text) => icon==='arrow' ? `<span>${text}</span>${ICON[icon]}` : `${ICON[icon]}<span>${text}</span>`;
 
 function keepAwake(){ try{ if(!wake && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{wake=w; w.addEventListener('release',()=>wake=null);}).catch(()=>{}); }catch(e){} }
 function beep(){
@@ -236,8 +246,8 @@ function renderHang(app){
           <circle id="hc" cx="50" cy="50" r="46" fill="none" class="arc" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="${289*(1-left/h.total)}"/></svg>
           <div class="t" id="ht">${Math.ceil(left)}</div></div>`}
       </div>
-      ${done ? '<div class="actions one"><button class="btn primary" id="hhome">Home</button></div>' :
-        h.paused ? '<div class="actions two"><button class="btn primary" id="hresume">Resume</button><button class="btn soft" id="hend">End</button></div>' : ''}
+      ${done ? `<div class="actions one"><button class="btn primary" id="hhome">${withIcon('home','Home')}</button></div>` :
+        h.paused ? `<div class="actions two"><button class="btn primary" id="hresume">${withIcon('play','Resume')}</button><button class="btn soft" id="hend">${withIcon('stop','End')}</button></div>` : ''}
     </div>`;
   if(View3D) View3D.mount(document.getElementById('figwrap'), 'easyhang');
   const on=(id,f)=>{ const el=document.getElementById(id); if(el) el.onclick=()=>{ unlockAudio(); f(); }; };
@@ -278,7 +288,7 @@ function render(){
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
-      <div class="homebtns"><button class="btn primary big" id="start">Start workout</button><button class="btn soft" id="hangbtn">Hang practice</button></div></div>
+      <div class="homebtns"><button class="btn primary big" id="start">${withIcon('play','Start workout')}</button><button class="btn soft" id="hangbtn">${withIcon('hang','Hang practice')}</button></div></div>
     <div class="scrim" id="rmscrim" ${removeDay?'':'hidden'}>
       <div class="sheet" id="rmsheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">${removeDay?rmSheet(removeDay):''}</div>
     </div>`;
@@ -312,7 +322,7 @@ function render(){
       <div class="restinfo">${focus&&!complete?chip(`Set ${frac(done+1,st.sets)} next`):'<div class="restlabel">Resting</div>'}
       <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">Skip</button></div></div></div>` : '';
   const restBlock = rest ? (focus ? '' : restTimer) :
-    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${fmt(st.rest)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
+    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${withIcon(complete?(last?'flag':'arrow'):'check', primaryLabel)}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${fmt(st.rest)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
 
   app.innerHTML = `
     <div class="top">
