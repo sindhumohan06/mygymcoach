@@ -239,13 +239,13 @@ function renderHang(app){
     </div>
     <div class="stage"><div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div></div>
     <div class="zone">
-      <div class="card fcard hcard${h.phase==='hang'&&!h.paused?' on':''}">
-        ${done ? `<h1 class="name hword">Done!</h1><p class="hnote">${roundsText(h.doneRounds)} of easy hangs</p>` :
-        `<h1 class="name hword" aria-live="polite">${word}</h1>
+      ${done ? `<div class="hdone"><h1 class="hero">Done!</h1><p class="lede">${roundsText(h.doneRounds)} of easy hangs</p></div>` :
+      `<div class="card fcard hcard${h.phase==='hang'&&!h.paused?' on':''}">
+        <h1 class="name hword" aria-live="polite">${word}</h1>
         <div class="ring" role="timer" aria-live="off"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" class="track" stroke-width="7"/>
           <circle id="hc" cx="50" cy="50" r="46" fill="none" class="arc" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="${289*(1-left/h.total)}"/></svg>
-          <div class="t" id="ht">${Math.ceil(left)}</div></div>`}
-      </div>
+          <div class="t" id="ht">${Math.ceil(left)}</div></div>
+      </div>`}
       ${done ? `<div class="actions one"><button class="btn primary" id="hhome">${withIcon('home','Home')}</button></div>` :
         h.paused ? `<div class="actions two"><button class="btn primary" id="hresume">${withIcon('play','Resume')}</button><button class="btn soft" id="hend">${withIcon('stop','End')}</button></div>` : ''}
     </div>`;
