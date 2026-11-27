@@ -12,6 +12,17 @@ function bindAvatar(){ document.querySelectorAll('.avinput').forEach(inp=>inp.on
     AVATAR=c.toDataURL('image/jpeg',0.85); try{ localStorage.setItem(AKEY,AVATAR); }catch(e){} render(); };
   img.src=url; }); }
 const HKEY='pullup-coach-history', FINISH_MS=3*60*1000;
+// No weekly target: the count of sessions this week, e.g. "2 times this week"
+const timesWeek = n => n===1?'time this week':'times this week';
+// A line icon that grows with the week: seedling (0), spark (1), flame (2), bolt (3), trophy (4 or more)
+const WEEK_ICONS = [
+  '<path d="M12 21v-9"/><path d="M12 12C12 8.5 9.5 6 5.5 6c0 3.5 2.5 6 6.5 6z"/><path d="M12 10c0-3 2.2-5 5.5-5 0 3-2.2 5-5.5 5z"/>',
+  '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
+  '<path d="M12 22c3.9 0 7-2.9 7-7 0-3.6-2.4-6.4-4.5-8.5 0 2.5-1.4 4-3 4.5C11.5 8 10 5 8 2.5 8 6.2 5 8.6 5 13.2 5 18.4 8.1 22 12 22z"/>',
+  '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
+  '<path d="M8 4h8v6a4 4 0 0 1-8 0V4z"/><path d="M8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 14v4M8.5 21h7M10 18h4v3h-4z"/>'
+];
+const weekIcon = n => `<svg class="wkicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WEEK_ICONS[Math.min(n,4)]}</svg>`;
 const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today = () => ymd(new Date());
 function fresh(){ return {date:today(), step:0, done:{}, finished:false, view:'welcome'}; }
@@ -24,38 +35,44 @@ try{ const raw = JSON.parse(localStorage.getItem(KEY));
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 let history = [];
 try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
-function logSession(){ if(!history.includes(today())) history.push(today()); try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
+function saveHistory(){ try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
+function logSession(){ if(!history.includes(today())) history.push(today()); saveHistory(); }
+function unlogSession(k){ history=history.filter(x=>x!==k); saveHistory(); }
 // Weeks run Sunday to Saturday
 const weekStart = d => new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());
 function weekCount(){ const start=ymd(weekStart(new Date()));
   return history.filter(x=>x>=start && x<=today()).length; }
 // Rolling calendar: one row per week (Sun to Sat), this week at the top, older weeks below.
-// Home: at least 26 weeks, back to the first session, with dates and month names; scrolls down for older weeks.
+// Home: back to the week of the first session (no earlier weeks), with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
+const dayName = k => { const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'}); };
 function calendarHTML(mini){
   const now=new Date(), t=today(), done=new Set(history);
   const sun=weekStart(now);
   const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
   const back=Math.ceil((sun-new Date(fy,fm-1,fd))/(7*864e5));
-  const weeks=mini?4:Math.max(26, back+1);
+  const weeks=mini?4:Math.max(1, back+1);
   let rows='', lastMonth=-1;
   for(let w=0; w<weeks; w++){
     const start=new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()-7*w);
     // Name the month beside its newest week (the top row, then wherever the Sunday's month changes)
     const m=start.getMonth();
-    if(!mini) rows += `<span class="calm">${m!==lastMonth?start.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
+    if(!mini) rows += `<span class="calm" aria-hidden="true">${m!==lastMonth?start.toLocaleDateString(undefined,{month:'short'}).replace('.',''):''}</span>`;
     lastMonth=m;
     for(let d=0; d<7; d++){
       const day=new Date(start.getFullYear(),start.getMonth(),start.getDate()+d), k=ymd(day);
-      rows += `<span class="cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}">${mini?'':day.getDate()}</span>`;
+      const cls=`cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}`;
+      // On the home calendar a logged day is a button, so a session logged by mistake can be removed
+      rows += !mini && done.has(k) ? `<button class="${cls}" data-day="${k}" aria-label="${dayName(k)}, session logged. Remove">${day.getDate()}</button>`
+        : `<span class="${cls}" aria-hidden="true">${mini?'':day.getDate()}</span>`;
     }
   }
   if(mini) return `<div class="cal mini" role="img" aria-label="Sessions in the last 4 weeks: ${history.filter(x=>x<=t&&x>=ymd(new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()-21))).length}">${rows}</div>`;
   const n=history.filter(x=>x<=t).length;
   const head=['S','M','T','W','T','F','S'].map(x=>`<span>${x}</span>`).join('');
-  return `<div class="calwrap" role="img" aria-label="Workout calendar: ${n} session${n===1?'':'s'} logged">
+  return `<div class="calwrap" role="group" aria-label="Workout calendar: ${n} session${n===1?'':'s'} logged">
     <div class="cal calhead" aria-hidden="true"><span></span>${head}</div>
-    <div class="calscroll" id="cal" aria-hidden="true"><div class="cal">${rows}</div></div></div>`;
+    <div class="calscroll" id="cal"><div class="cal">${rows}</div></div></div>`;
 }
 let homeTimer = null;
 function finishSession(){ S.finished=true; S.finishedAt=Date.now(); rest=null; clearInterval(tick); logSession(); save(); render(); confetti(); say('Workout complete. Great job, Sindhu!'); scheduleHome(); }
@@ -66,7 +83,7 @@ function leaveWorkout(){ leaveOpen=false; rest=null; clearInterval(tick); goHome
 function startWorkout(){ unlockAudio(); keepAwake(); S=fresh(); S.view='workout'; save(); render(); }
 
 let rest = null; // {end,total}
-let tipsOpen = false, leaveOpen = false;
+let tipsOpen = false, leaveOpen = false, removeDay = null;
 let tick = null, audio = null, wake = null;
 
 const frac = (n,of) => `<span aria-hidden="true">${n}<span class="of">/${of}</span></span><span class="sr">${n} of ${of}</span>`;
@@ -131,7 +148,7 @@ function render(){
   const app=document.getElementById('app');
   app.classList.remove('focus');
   if(S.finished){
-    const n = history.length, wk = Math.min(weekCount(),3);
+    const n = history.length, wk = weekCount();
     app.innerHTML = `<div class="screen finish">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>
         <button class="iconbtn" id="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button></div>
@@ -140,26 +157,41 @@ function render(){
       <h1 class="hero">Session<br>done!</h1>
       <p class="lede">One step closer to your first pull-up.</p>
       <div class="weekcard">${calendarHTML(true)}
-        <div class="wklab"><span class="wknum">${frac(wk,3)}</span>${wk>=3?'Full week done!':'this week'}</div></div>
+        <div class="wklab"><span class="wkrow"><span class="wknum">${wk}</span>${weekIcon(wk)}</span>${timesWeek(wk)}</div></div>
       </div>
 </div>`;
     document.getElementById('home').onclick=goHome; bindAvatar();
     return;
   }
   if(S.view!=='workout'){
-    const n = history.length, wk = Math.min(weekCount(),3), h = new Date().getHours();
+    const n = history.length, wk = weekCount(), h = new Date().getHours();
     const hello = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
     app.innerHTML = `<div class="screen welcome">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>${n?`<span class="totpill">${n} session${n>1?'s':''} total</span>`:''}</div>
       <div class="hellorow">${avatarHTML('avatar')}<h1 class="hello">${hello},<br><span class="hl">Sindhu</span></h1></div>
       <section class="bigweek" aria-label="Your sessions">
-        <div class="bwhead"><span class="bwnum">${frac(wk,3)}</span><span class="bwlab">${wk>=3?'Full week done!':'this week'}</span></div>
+        <div class="bwhead"><span class="bwnum">${wk}</span>${weekIcon(wk)}<span class="bwlab">${timesWeek(wk)}</span></div>
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
-      <button class="btn primary big" id="start">Start workout</button></div>`;
+      <button class="btn primary big" id="start">Start workout</button></div>
+    <div class="scrim" id="rmscrim" ${removeDay?'':'hidden'}>
+      <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">
+        <h2 class="leavetitle" id="rmtitle">Remove this session?</h2>
+        <p class="leavetext" id="rmtext">${removeDay?dayName(removeDay):''} won't count as a workout.</p>
+        <div class="leavebtns"><button class="btn quiet" id="rmkeep">Keep</button><button class="btn primary" id="rmgo">Remove</button></div>
+      </div>
+    </div>`;
     if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
     document.getElementById('start').onclick=startWorkout; bindAvatar();
+    // Tapping a logged day asks before removing it; the sheet opens without a re-render so the calendar keeps its scroll
+    const rm=document.getElementById('rmscrim');
+    document.querySelectorAll('.cald[data-day]').forEach(b=>b.onclick=()=>{ removeDay=b.dataset.day;
+      document.getElementById('rmtext').textContent=`${dayName(removeDay)} won't count as a workout.`; rm.hidden=false; document.getElementById('rmkeep').focus(); });
+    const closeRemove=()=>{ const b=document.querySelector(`.cald[data-day="${removeDay}"]`); removeDay=null; rm.hidden=true; if(b) b.focus(); };
+    document.getElementById('rmkeep').onclick=closeRemove;
+    rm.onclick=e=>{ if(e.target===rm) closeRemove(); };
+    document.getElementById('rmgo').onclick=()=>{ const top=document.getElementById('cal').scrollTop; unlogSession(removeDay); removeDay=null; render(); document.getElementById('cal').scrollTop=top; };
     return;
   }
   const st=STEPS[S.step], done=S.done[st.id]||0, complete=done>=st.sets, last=S.step===STEPS.length-1;
@@ -245,7 +277,8 @@ function render(){
 }
 document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
   if(tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; }
-  if(leaveOpen){ leaveOpen=false; const sc=document.getElementById('leavescrim'); if(sc) sc.hidden=true; } });
+  if(leaveOpen){ leaveOpen=false; const sc=document.getElementById('leavescrim'); if(sc) sc.hidden=true; }
+  if(removeDay){ removeDay=null; const sc=document.getElementById('rmscrim'); if(sc) sc.hidden=true; } });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>View3D&&View3D.rebuild()); new MutationObserver(()=>View3D&&View3D.rebuild()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
 function confetti(){
