@@ -124,7 +124,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .bwnum{font-family:var(--display);font-weight:700;font-size:40px;line-height:.9;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
 .bwlab{font-family:var(--body);font-weight:600;font-size:17px;color:var(--muted)}
 .calwrap{display:flex;flex-direction:column;gap:6px}
-.calscroll{height:150px;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
+.calscroll{max-height:150px;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
 .calscroll::-webkit-scrollbar{display:none}
 .cal{display:grid;grid-template-columns:36px repeat(7,1fr);grid-auto-rows:32px;gap:4px}
 .calhead{grid-auto-rows:auto;font-size:13px;font-weight:600;color:var(--muted);text-align:center}

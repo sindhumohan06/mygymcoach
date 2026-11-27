@@ -43,7 +43,7 @@ const weekStart = d => new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDa
 function weekCount(){ const start=ymd(weekStart(new Date()));
   return history.filter(x=>x>=start && x<=today()).length; }
 // Rolling calendar: one row per week (Sun to Sat), this week at the top, older weeks below.
-// Home: at least 26 weeks, back to the first session, with dates and month names; scrolls down for older weeks.
+// Home: back to the week of the first session (no earlier weeks), with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
 const dayName = k => { const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'}); };
 function calendarHTML(mini){
@@ -51,7 +51,7 @@ function calendarHTML(mini){
   const sun=weekStart(now);
   const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
   const back=Math.ceil((sun-new Date(fy,fm-1,fd))/(7*864e5));
-  const weeks=mini?4:Math.max(26, back+1);
+  const weeks=mini?4:Math.max(1, back+1);
   let rows='', lastMonth=-1;
   for(let w=0; w<weeks; w++){
     const start=new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()-7*w);
