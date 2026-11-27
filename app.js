@@ -38,6 +38,13 @@ try{ history = JSON.parse(localStorage.getItem(HKEY)) || []; }catch(e){}
 function saveHistory(){ try{ localStorage.setItem(HKEY, JSON.stringify(history)); }catch(e){} }
 function logSession(){ if(!history.includes(today())) history.push(today()); saveHistory(); }
 function unlogSession(k){ history=history.filter(x=>x!==k); saveHistory(); }
+// Hang practice days, kept apart from workouts so they don't count towards the week
+const GKEY='pullup-coach-hangs';
+let hangs = [];
+try{ hangs = JSON.parse(localStorage.getItem(GKEY)) || []; }catch(e){}
+function saveHangs(){ try{ localStorage.setItem(GKEY, JSON.stringify(hangs)); }catch(e){} }
+function logHang(){ if(!hangs.includes(today())) hangs.push(today()); saveHangs(); }
+function unlogHang(k){ hangs=hangs.filter(x=>x!==k); saveHangs(); }
 // Weeks run Sunday to Saturday
 const weekStart = d => new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());
 function weekCount(){ const start=ymd(weekStart(new Date()));
@@ -46,10 +53,20 @@ function weekCount(){ const start=ymd(weekStart(new Date()));
 // Home: back to the week of the first session (no earlier weeks), with dates and month names; scrolls down for older weeks.
 // Mini (finish screen): just the last 4 weeks, no text.
 const dayName = k => { const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'}); };
+const loggedWhat = k => [history.includes(k)&&'workout', hangs.includes(k)&&'hang practice'].filter(Boolean).join(' and ');
+// The remove sheet for a logged day: one Remove button, or a choice when both were logged
+function rmSheet(k){
+  const w=history.includes(k), g=hangs.includes(k);
+  if(w&&g) return `<h2 class="leavetitle" id="rmtitle">Remove which?</h2><p class="leavetext" id="rmtext">${dayName(k)}</p>
+    <div class="leavebtns stack"><button class="btn primary" data-rm="w">Workout</button><button class="btn primary" data-rm="g">Hang practice</button><button class="btn quiet" id="rmkeep">Keep</button></div>`;
+  return `<h2 class="leavetitle" id="rmtitle">${w?'Remove this session?':'Remove hang practice?'}</h2>
+    <p class="leavetext" id="rmtext">${w?`${dayName(k)} won't count as a workout.`:`${dayName(k)}'s hang practice will come off the calendar.`}</p>
+    <div class="leavebtns"><button class="btn quiet" id="rmkeep">Keep</button><button class="btn primary" data-rm="${w?'w':'g'}">Remove</button></div>`;
+}
 function calendarHTML(mini){
-  const now=new Date(), t=today(), done=new Set(history);
-  const sun=weekStart(now);
-  const first=history.length?history.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
+  const now=new Date(), t=today(), done=new Set(history), hung=new Set(hangs);
+  const sun=weekStart(now), all=history.concat(hangs);
+  const first=all.length?all.reduce((a,b)=>a<b?a:b):t, [fy,fm,fd]=first.split('-').map(Number);
   const back=Math.ceil((sun-new Date(fy,fm-1,fd))/(7*864e5));
   const weeks=mini?4:Math.max(1, back+1);
   let rows='', lastMonth=-1;
@@ -61,9 +78,10 @@ function calendarHTML(mini){
     lastMonth=m;
     for(let d=0; d<7; d++){
       const day=new Date(start.getFullYear(),start.getMonth(),start.getDate()+d), k=ymd(day);
-      const cls=`cald${done.has(k)?' on':''}${k===t?' now':''}${k>t?' fut':''}`;
+      // Workout days are filled; hang practice days get a dot (home calendar only)
+      const cls=`cald${done.has(k)?' on':''}${!mini&&hung.has(k)?' hg':''}${k===t?' now':''}${k>t?' fut':''}`;
       // On the home calendar a logged day is a button, so a session logged by mistake can be removed
-      rows += !mini && done.has(k) ? `<button class="${cls}" data-day="${k}" aria-label="${dayName(k)}, session logged. Remove">${day.getDate()}</button>`
+      rows += !mini && (done.has(k)||hung.has(k)) ? `<button class="${cls}" data-day="${k}" aria-label="${dayName(k)}, ${loggedWhat(k)} logged. Remove">${day.getDate()}</button>`
         : `<span class="${cls}" aria-hidden="true">${mini?'':day.getDate()}</span>`;
     }
   }
@@ -87,12 +105,23 @@ let tipsOpen = false, leaveOpen = false, removeDay = null;
 let tick = null, audio = null, wake = null;
 
 const frac = (n,of) => `<span aria-hidden="true">${n}<span class="of">/${of}</span></span><span class="sr">${n} of ${of}</span>`;
+const NOFIG = '<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>';
 const chip = t => `<div class="setchip">${t}</div>`;
 const fmt = s => { s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 const ICON = {
   prev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
-  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'
+  next:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  // Icons for the big action buttons, drawn at the button's text size
+  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 4.8v14.4a1 1 0 0 0 1.5.86l11.6-7.2a1 1 0 0 0 0-1.72L9.5 3.94A1 1 0 0 0 8 4.8z"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5.5" y="5.5" width="13" height="13" rx="2.5"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5" fill="currentColor"/></svg>',
+  hang:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3.5h18"/><path d="M8 3.5l2.5 7M16 3.5l-2.5 7"/><circle cx="12" cy="7.5" r="1.7" fill="currentColor" stroke="none"/><path d="M10.5 10.5h3M12 10.5v5.5M12 16l-2 5M12 16l2 5"/></svg>'
 };
+// Button content: an icon then its label (a forward arrow goes after it)
+const withIcon = (icon, text) => icon==='arrow' ? `<span>${text}</span>${ICON[icon]}` : `${ICON[icon]}<span>${text}</span>`;
 
 function keepAwake(){ try{ if(!wake && navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{wake=w; w.addEventListener('release',()=>wake=null);}).catch(()=>{}); }catch(e){} }
 function beep(){
@@ -142,11 +171,96 @@ function updateRest(){
   if(c) c.style.strokeDashoffset = String(289*(1-left/rest.total));
 }
 
+// ---------- Hang practice: rounds of easy hangs with spoken cues ----------
+const HANG = {rounds:10, on:10, off:20, ready:8};
+let hang = null; // {phase:'ready'|'hang'|'rest'|'done', round, doneRounds, end, total, paused, left, said}
+function hangPhase(p, sec, from){ hang.phase=p; hang.total=sec; hang.end=(from||Date.now())+sec*1000; hang.said={}; }
+const hangLeft = () => hang.paused ? hang.left : (hang.end-Date.now())/1000;
+function startHang(){
+  unlockAudio(); keepAwake();
+  hang = {round:1, doneRounds:0, paused:false};
+  hangPhase('ready', HANG.ready);
+  say(`Hang practice, ${HANG.rounds} rounds. Feet on the chair, and keep it easy.`);
+  clearInterval(tick); tick = setInterval(updateHang, 200);
+  render();
+}
+function updateHang(){
+  if(!hang || hang.paused || hang.phase==='done') return;
+  const left = hangLeft();
+  if(left<=0){
+    // Chain from the planned end time, so the rounds stay on time after the phone sleeps
+    const at = hang.end;
+    if(hang.phase==='hang'){
+      hang.doneRounds++;
+      if(hang.doneRounds>=HANG.rounds) return finishHang();
+      hang.round++; hangPhase('rest', HANG.off, at); say('And rest.');
+    } else { hangPhase('hang', HANG.on, at); say('Hang.'); }
+    render(); return;
+  }
+  // Count down into each hang, and name the round partway through the rest
+  if(hang.phase!=='hang'){
+    const s = Math.ceil(left);
+    if(hang.phase==='rest' && s===6 && !hang.said[6]){ hang.said[6]=1; say(`Round ${hang.round}.`); }
+    if(s<=3 && !hang.said[s]){ hang.said[s]=1; say(String(s)); }
+  }
+  const t=document.getElementById('ht'), c=document.getElementById('hc');
+  if(t) t.textContent = Math.ceil(left);
+  if(c) c.style.strokeDashoffset = String(289*(1-left/hang.total));
+}
+const HANG_MIN = 3; // ending early still logs the day after this many rounds
+const roundsText = n => `${n} round${n===1?'':'s'}`;
+// Done: the full set gets confetti; ending early after HANG_MIN rounds shows what was done
+function finishHang(){
+  const full = hang.doneRounds>=HANG.rounds;
+  hang.phase='done'; hang.paused=false; hang.round=hang.doneRounds; clearInterval(tick); logHang(); render();
+  if(full) confetti();
+  say(`${full?"That's ":''}${roundsText(hang.doneRounds)}. Nice work, Sindhu!`);
+}
+function pauseHang(){ hang.left=hangLeft(); hang.paused=true; try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render(); }
+// Resuming mid-hang restarts that hang after a short count, since you've likely let go of the bar
+function resumeHang(){
+  hang.paused=false; keepAwake();
+  if(hang.phase==='hang') hangPhase('ready', 4); else hang.end=Date.now()+hang.left*1000;
+  render();
+}
+function endHang(){ if(hang.phase!=='done' && hang.doneRounds>=HANG_MIN) return finishHang(); leaveHang(); }
+function leaveHang(){ hang=null; clearInterval(tick); try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} render(); }
+const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg>';
+function renderHang(app){
+  app.classList.add('focus');
+  const h=hang, done=h.phase==='done', left=done?0:hangLeft();
+  const segs=Array.from({length:HANG.rounds},(_,i)=>`<div class="seg ${i<h.doneRounds?'done':''} ${!done&&i===h.round-1?'now':''}"></div>`).join('');
+  const word=h.paused?'Paused':{ready:'Get ready', hang:'Hang', rest:'Rest'}[h.phase];
+  app.innerHTML = `
+    <div class="top">
+      <button class="iconbtn" id="hback" aria-label="${done?'Home':'End hang practice'}">${ICON.prev}</button>
+      <div class="progress"><div class="plabel count"><span class="sr">Round </span>${frac(h.round,HANG.rounds)}</div><div class="segs" style="grid-template-columns:repeat(${HANG.rounds},minmax(0,1fr))">${segs}</div></div>
+      ${done||h.paused?'<span class="iconspace" aria-hidden="true"></span>':`<button class="iconbtn" id="hpause" aria-label="Pause">${PAUSE_ICON}</button>`}
+    </div>
+    <div class="stage"><div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div></div>
+    <div class="zone">
+      ${done ? `<div class="hdone"><h1 class="hero">Done!</h1><p class="lede">${roundsText(h.doneRounds)} of easy hangs</p></div>` :
+      `<div class="card fcard hcard${h.phase==='hang'&&!h.paused?' on':''}">
+        <h1 class="name hword" aria-live="polite">${word}</h1>
+        <div class="ring" role="timer" aria-live="off"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" class="track" stroke-width="7"/>
+          <circle id="hc" cx="50" cy="50" r="46" fill="none" class="arc" stroke-width="7" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="${289*(1-left/h.total)}"/></svg>
+          <div class="t" id="ht">${Math.ceil(left)}</div></div>
+      </div>`}
+      ${done ? `<div class="actions one"><button class="btn primary" id="hhome">${withIcon('home','Home')}</button></div>` :
+        h.paused ? `<div class="actions two"><button class="btn primary" id="hresume">${withIcon('play','Resume')}</button><button class="btn soft" id="hend">${withIcon('stop','End')}</button></div>` : ''}
+    </div>`;
+  if(View3D) View3D.mount(document.getElementById('figwrap'), 'easyhang');
+  const on=(id,f)=>{ const el=document.getElementById(id); if(el) el.onclick=()=>{ unlockAudio(); f(); }; };
+  on('hback', endHang); on('hpause', pauseHang); on('hresume', resumeHang); on('hend', endHang); on('hhome', leaveHang);
+  const first=document.getElementById('hresume'); if(first) first.focus();
+}
+
 function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render(); }
 
 function render(){
   const app=document.getElementById('app');
   app.classList.remove('focus');
+  if(hang) return renderHang(app);
   if(S.finished){
     const n = history.length, wk = weekCount();
     app.innerHTML = `<div class="screen finish">
@@ -174,24 +288,24 @@ function render(){
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
-      <button class="btn primary big" id="start">Start workout</button></div>
+      <div class="homebtns"><button class="btn primary big" id="start">${withIcon('play','Start workout')}</button><button class="btn soft" id="hangbtn">${withIcon('hang','Hang practice')}</button></div></div>
     <div class="scrim" id="rmscrim" ${removeDay?'':'hidden'}>
-      <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">
-        <h2 class="leavetitle" id="rmtitle">Remove this session?</h2>
-        <p class="leavetext" id="rmtext">${removeDay?dayName(removeDay):''} won't count as a workout.</p>
-        <div class="leavebtns"><button class="btn quiet" id="rmkeep">Keep</button><button class="btn primary" id="rmgo">Remove</button></div>
-      </div>
+      <div class="sheet" id="rmsheet" role="alertdialog" aria-modal="true" aria-labelledby="rmtitle" aria-describedby="rmtext">${removeDay?rmSheet(removeDay):''}</div>
     </div>`;
     if(View3D) View3D.mount(document.getElementById('figwrap'), 'pullup');
-    document.getElementById('start').onclick=startWorkout; bindAvatar();
+    document.getElementById('start').onclick=startWorkout; document.getElementById('hangbtn').onclick=startHang; bindAvatar();
     // Tapping a logged day asks before removing it; the sheet opens without a re-render so the calendar keeps its scroll
-    const rm=document.getElementById('rmscrim');
-    document.querySelectorAll('.cald[data-day]').forEach(b=>b.onclick=()=>{ removeDay=b.dataset.day;
-      document.getElementById('rmtext').textContent=`${dayName(removeDay)} won't count as a workout.`; rm.hidden=false; document.getElementById('rmkeep').focus(); });
+    const rm=document.getElementById('rmscrim'), sheet=document.getElementById('rmsheet');
     const closeRemove=()=>{ const b=document.querySelector(`.cald[data-day="${removeDay}"]`); removeDay=null; rm.hidden=true; if(b) b.focus(); };
-    document.getElementById('rmkeep').onclick=closeRemove;
+    const bindRemove=()=>{
+      document.getElementById('rmkeep').onclick=closeRemove;
+      sheet.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ const top=document.getElementById('cal').scrollTop;
+        (b.dataset.rm==='w'?unlogSession:unlogHang)(removeDay); removeDay=null; render(); document.getElementById('cal').scrollTop=top; });
+    };
+    document.querySelectorAll('.cald[data-day]').forEach(b=>b.onclick=()=>{ removeDay=b.dataset.day;
+      sheet.innerHTML=rmSheet(removeDay); bindRemove(); rm.hidden=false; document.getElementById('rmkeep').focus(); });
+    if(removeDay) bindRemove();
     rm.onclick=e=>{ if(e.target===rm) closeRemove(); };
-    document.getElementById('rmgo').onclick=()=>{ const top=document.getElementById('cal').scrollTop; unlogSession(removeDay); removeDay=null; render(); document.getElementById('cal').scrollTop=top; };
     return;
   }
   const st=STEPS[S.step], done=S.done[st.id]||0, complete=done>=st.sets, last=S.step===STEPS.length-1;
@@ -208,7 +322,7 @@ function render(){
       <div class="restinfo">${focus&&!complete?chip(`Set ${frac(done+1,st.sets)} next`):'<div class="restlabel">Resting</div>'}
       <div class="restbtns"><button class="small" id="plus">+15 s</button><button class="small fill" id="skip">Skip</button></div></div></div>` : '';
   const restBlock = rest ? (focus ? '' : restTimer) :
-    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${primaryLabel}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${fmt(st.rest)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
+    `<div class="actions"><button class="btn primary" id="primary"${!complete&&st.sets>1?` aria-label="Done, set ${done+1} of ${st.sets}"`:''}>${withIcon(complete?(last?'flag':'arrow'):'check', primaryLabel)}</button>${st.noTimer?'':`<button class="timerbtn" id="timer" aria-label="Start rest timer, ${fmt(st.rest)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 1.5M10 2.5h4M12 2.5V6"/></svg></button>`}</div>`;
 
   app.innerHTML = `
     <div class="top">
@@ -217,7 +331,7 @@ function render(){
       <button class="iconbtn" id="next" aria-label="Next exercise" ${last?'disabled':''}>${ICON.next}</button>
     </div>
     <div class="stage">
-      <div class="figwrap" id="figwrap">${View3D?'':'<p class="nofig">The 3D demo needs a connection to load. Check your internet and reopen the page.</p>'}</div>
+      <div class="figwrap" id="figwrap">${View3D?'':NOFIG}</div>
       <div class="stagefoot"><div class="legend"><span><i class="k1"></i>${st.mpl}</span>${st.msl?`<span><i class="k2"></i>${st.msl}</span>`:''}</div></div></div>
     <div class="zone">
     <div class="card${focus?' fcard':' ccard'}${focus&&rest?' resting':''}">
@@ -279,7 +393,7 @@ document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
   if(tipsOpen){ tipsOpen=false; const sc=document.getElementById('scrim'); if(sc) sc.hidden=true; }
   if(leaveOpen){ leaveOpen=false; const sc=document.getElementById('leavescrim'); if(sc) sc.hidden=true; }
   if(removeDay){ removeDay=null; const sc=document.getElementById('rmscrim'); if(sc) sc.hidden=true; } });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(wake===null && rest) keepAwake(); }});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ if(rest) updateRest(); if(hang) updateHang(); if(wake===null && (rest||hang)) keepAwake(); }});
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>View3D&&View3D.rebuild()); new MutationObserver(()=>View3D&&View3D.rebuild()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
 function confetti(){
   if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
