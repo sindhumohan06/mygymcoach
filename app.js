@@ -14,6 +14,15 @@ function bindAvatar(){ document.querySelectorAll('.avinput').forEach(inp=>inp.on
 const HKEY='pullup-coach-history', FINISH_MS=3*60*1000;
 // No weekly target: the count of sessions this week, e.g. "2 times this week"
 const timesWeek = n => n===1?'time this week':'times this week';
+// A line icon that grows with the week: seedling (0), spark (1), flame (2), bolt (3), trophy (4 or more)
+const WEEK_ICONS = [
+  '<path d="M12 21v-9"/><path d="M12 12C12 8.5 9.5 6 5.5 6c0 3.5 2.5 6 6.5 6z"/><path d="M12 10c0-3 2.2-5 5.5-5 0 3-2.2 5-5.5 5z"/>',
+  '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
+  '<path d="M12 22c3.9 0 7-2.9 7-7 0-3.6-2.4-6.4-4.5-8.5 0 2.5-1.4 4-3 4.5C11.5 8 10 5 8 2.5 8 6.2 5 8.6 5 13.2 5 18.4 8.1 22 12 22z"/>',
+  '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
+  '<path d="M8 4h8v6a4 4 0 0 1-8 0V4z"/><path d="M8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 14v4M8.5 21h7M10 18h4v3h-4z"/>'
+];
+const weekIcon = n => `<svg class="wkicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WEEK_ICONS[Math.min(n,4)]}</svg>`;
 const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today = () => ymd(new Date());
 function fresh(){ return {date:today(), step:0, done:{}, finished:false, view:'welcome'}; }
@@ -148,7 +157,7 @@ function render(){
       <h1 class="hero">Session<br>done!</h1>
       <p class="lede">One step closer to your first pull-up.</p>
       <div class="weekcard">${calendarHTML(true)}
-        <div class="wklab"><span class="wknum">${wk}</span>${timesWeek(wk)}</div></div>
+        <div class="wklab"><span class="wkrow"><span class="wknum">${wk}</span>${weekIcon(wk)}</span>${timesWeek(wk)}</div></div>
       </div>
 </div>`;
     document.getElementById('home').onclick=goHome; bindAvatar();
@@ -161,7 +170,7 @@ function render(){
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>${n?`<span class="totpill">${n} session${n>1?'s':''} total</span>`:''}</div>
       <div class="hellorow">${avatarHTML('avatar')}<h1 class="hello">${hello},<br><span class="hl">Sindhu</span></h1></div>
       <section class="bigweek" aria-label="Your sessions">
-        <div class="bwhead"><span class="bwnum">${wk}</span><span class="bwlab">${timesWeek(wk)}</span></div>
+        <div class="bwhead"><span class="bwnum">${wk}</span>${weekIcon(wk)}<span class="bwlab">${timesWeek(wk)}</span></div>
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>

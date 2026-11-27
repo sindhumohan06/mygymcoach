@@ -145,6 +145,12 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.cal.mini .cald.now{animation:none}}
 .wklab{display:flex;flex-direction:column;gap:2px;font-family:var(--body);font-weight:600;font-size:16px;color:var(--muted)}
 .wknum{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
+.wkrow{display:flex;align-items:center;gap:8px}
+.wkicon{width:30px;height:30px;flex:none;color:var(--accent)}
+.bwhead .wkicon{align-self:center;margin-left:-2px}
+/* On the finish screen the week's icon pops in, like the calendar's today square */
+.weekcard .wkicon{animation:calpop .5s .7s ease-out both}
+@media (prefers-reduced-motion: reduce){.weekcard .wkicon{animation:none}}
 .btn.big{min-height:64px;font-size:22px}
 .hellorow{display:flex;align-items:center;gap:14px}
 .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
