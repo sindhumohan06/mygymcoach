@@ -122,7 +122,6 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .bigweek{background:var(--surface);border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .bwhead{display:flex;align-items:baseline;gap:10px}
 .bwnum{font-family:var(--display);font-weight:700;font-size:40px;line-height:.9;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
-.bwnum .of{color:var(--muted)}
 .bwlab{font-family:var(--body);font-weight:600;font-size:17px;color:var(--muted)}
 .calwrap{display:flex;flex-direction:column;gap:6px}
 .calscroll{height:150px;overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
@@ -146,7 +145,6 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.cal.mini .cald.now{animation:none}}
 .wklab{display:flex;flex-direction:column;gap:2px;font-family:var(--body);font-weight:600;font-size:16px;color:var(--muted)}
 .wknum{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;letter-spacing:-0.02em;color:var(--accent);font-variant-numeric:tabular-nums}
-.wknum .of{color:var(--muted)}
 .btn.big{min-height:64px;font-size:22px}
 .hellorow{display:flex;align-items:center;gap:14px}
 .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}

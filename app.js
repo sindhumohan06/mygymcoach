@@ -12,6 +12,8 @@ function bindAvatar(){ document.querySelectorAll('.avinput').forEach(inp=>inp.on
     AVATAR=c.toDataURL('image/jpeg',0.85); try{ localStorage.setItem(AKEY,AVATAR); }catch(e){} render(); };
   img.src=url; }); }
 const HKEY='pullup-coach-history', FINISH_MS=3*60*1000;
+// No weekly target: the count of sessions this week, e.g. "2 times this week"
+const timesWeek = n => n===1?'time this week':'times this week';
 const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const today = () => ymd(new Date());
 function fresh(){ return {date:today(), step:0, done:{}, finished:false, view:'welcome'}; }
@@ -137,7 +139,7 @@ function render(){
   const app=document.getElementById('app');
   app.classList.remove('focus');
   if(S.finished){
-    const n = history.length, wk = Math.min(weekCount(),3);
+    const n = history.length, wk = weekCount();
     app.innerHTML = `<div class="screen finish">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>
         <button class="iconbtn" id="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button></div>
@@ -146,20 +148,20 @@ function render(){
       <h1 class="hero">Session<br>done!</h1>
       <p class="lede">One step closer to your first pull-up.</p>
       <div class="weekcard">${calendarHTML(true)}
-        <div class="wklab"><span class="wknum">${frac(wk,3)}</span>${wk>=3?'Full week done!':'this week'}</div></div>
+        <div class="wklab"><span class="wknum">${wk}</span>${timesWeek(wk)}</div></div>
       </div>
 </div>`;
     document.getElementById('home').onclick=goHome; bindAvatar();
     return;
   }
   if(S.view!=='workout'){
-    const n = history.length, wk = Math.min(weekCount(),3), h = new Date().getHours();
+    const n = history.length, wk = weekCount(), h = new Date().getHours();
     const hello = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
     app.innerHTML = `<div class="screen welcome">
       <div class="finhead"><div class="plabel left">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</div>${n?`<span class="totpill">${n} session${n>1?'s':''} total</span>`:''}</div>
       <div class="hellorow">${avatarHTML('avatar')}<h1 class="hello">${hello},<br><span class="hl">Sindhu</span></h1></div>
       <section class="bigweek" aria-label="Your sessions">
-        <div class="bwhead"><span class="bwnum">${frac(wk,3)}</span><span class="bwlab">${wk>=3?'Full week done!':'this week'}</span></div>
+        <div class="bwhead"><span class="bwnum">${wk}</span><span class="bwlab">${timesWeek(wk)}</span></div>
         ${calendarHTML()}
       </section>
       <div class="decor" aria-hidden="true"><div class="figwrap" id="figwrap"></div></div>
