@@ -137,7 +137,7 @@ function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.w
   // iOS only lets a page speak after it has spoken once during a tap, so prime it silently
   try{ if(!voiceReady && window.speechSynthesis){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); voiceReady=true; } }catch(e){} }
 
-// Spoken announcements: the first exercise at the start, what's next when a rest ends, and a heads-up 10 seconds before
+// Spoken announcements: each exercise as you move to it, what's next when a rest ends or is skipped, and a heads-up 10 seconds before
 let voiceReady = false, warned = false;
 let talking = false;
 function say(text, delay){
@@ -262,7 +262,9 @@ function renderHang(app){
   const first=document.getElementById('hresume'); if(first) first.focus();
 }
 
-function go(i){ tipsOpen=false; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render(); }
+// Moving to another exercise announces it, unless a rest starts next (its end announces instead)
+function go(i, quiet){ tipsOpen=false; const was=S.step; S.step=Math.max(0,Math.min(STEPS.length-1,i)); S.finished=false; rest=null; clearInterval(tick); save(); render();
+  if(!quiet && S.step!==was) say(nextLine()); }
 
 function render(){
   const app=document.getElementById('app');
@@ -382,7 +384,7 @@ function render(){
   document.getElementById('next').onclick=()=>go(S.step+1);
   if(rest){
     document.getElementById('plus').onclick=()=>{ rest.end+=15000; rest.total+=15; if((rest.end-Date.now())/1000>10) warned=false; updateRest(); };
-    document.getElementById('skip').onclick=stopRest;
+    document.getElementById('skip').onclick=()=>{ stopRest(); say(nextLine()); };
     updateRest();
   } else {
     if(!st.noTimer) document.getElementById('timer').onclick=()=>startRest(st.rest);
@@ -392,7 +394,7 @@ function render(){
       S.done[st.id]=done+1; save();
       if(done+1<st.sets){ startRest(st.rest); return; }
       if(last){ finishSession(); return; }
-      go(S.step+1); if(!st.noTimer) startRest(st.rest);
+      go(S.step+1, !st.noTimer); if(!st.noTimer) startRest(st.rest);
     };
   }
 }
