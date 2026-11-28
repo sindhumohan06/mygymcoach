@@ -98,7 +98,7 @@ function scheduleHome(){ clearTimeout(homeTimer); if(!S.finished) return; const 
   homeTimer = setTimeout(goHome, Math.max(0,left)); }
 function goHome(){ clearTimeout(homeTimer); S=fresh(); save(); render(); }
 function leaveWorkout(){ leaveOpen=false; rest=null; clearInterval(tick); goHome(); }
-function startWorkout(){ unlockAudio(); keepAwake(); S=fresh(); S.view='workout'; save(); render(); }
+function startWorkout(){ unlockAudio(); keepAwake(); S=fresh(); S.view='workout'; save(); render(); say(nextLine('First up')); }
 
 let rest = null; // {end,total}
 let tipsOpen = false, leaveOpen = false, removeDay = null;
@@ -137,7 +137,7 @@ function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.w
   // iOS only lets a page speak after it has spoken once during a tap, so prime it silently
   try{ if(!voiceReady && window.speechSynthesis){ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); voiceReady=true; } }catch(e){} }
 
-// Spoken announcements: what's next when a rest ends, and a heads-up 10 seconds before
+// Spoken announcements: the first exercise at the start, what's next when a rest ends, and a heads-up 10 seconds before
 let voiceReady = false, warned = false;
 function say(text, delay){
   try{ if(!window.speechSynthesis) return;
@@ -146,11 +146,11 @@ function say(text, delay){
 }
 const spoken = t => t.replace(/(\d)\s*s\+/g,'$1 seconds or more').replace(/\s\+\s/g,' and ').replace(/\s*·\s*/g,', ')
   .replace(/(\d)\s*–\s*(\d)/g,'$1 to $2').replace(/(\d)\s*s\b/g,'$1 seconds').replace(/\bsec\b/g,'seconds').replace(/\s+/g,' ').trim();
-function nextLine(){
+function nextLine(lead){
   const st=STEPS[S.step], done=S.done[st.id]||0;
   if(done>=st.sets) return '';
   const reps=spoken(`${st.big} ${st.unit}`);
-  if(done===0) return `Next up, ${st.name}. ${st.sets>1?'Set 1, ':''}${reps}.`;
+  if(done===0) return `${lead||'Next up'}, ${st.name}. ${st.sets>1?'Set 1, ':''}${reps}.`;
   return `Set ${done+1}, ${reps}.`;
 }
 
