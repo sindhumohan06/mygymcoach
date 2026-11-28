@@ -139,9 +139,16 @@ function unlockAudio(){ try{ audio = audio || new (window.AudioContext||window.w
 
 // Spoken announcements: the first exercise at the start, what's next when a rest ends, and a heads-up 10 seconds before
 let voiceReady = false, warned = false;
+let talking = false;
 function say(text, delay){
-  try{ if(!window.speechSynthesis) return;
-    setTimeout(()=>{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-GB'; u.rate=1; speechSynthesis.speak(u); }, delay||0);
+  if(delay) return void setTimeout(()=>say(text), delay);
+  // Speak right away, not on a timer: iOS only lets speech start during the tap itself.
+  // Only cut off a real line, so the silent primer from unlockAudio() stays in the queue
+  try{ if(!window.speechSynthesis || !text) return;
+    if(talking) speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang='en-GB'; u.rate=1;
+    u.onstart=()=>{ talking=true; }; u.onend=u.onerror=()=>{ talking=false; };
+    speechSynthesis.speak(u);
   }catch(e){}
 }
 const spoken = t => t.replace(/(\d)\s*s\+/g,'$1 seconds or more').replace(/\s\+\s/g,' and ').replace(/\s*·\s*/g,', ')
